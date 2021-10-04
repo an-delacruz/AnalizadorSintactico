@@ -40,7 +40,7 @@ namespace AnalizadorSintactico
             this.btnCargarPrograma = new System.Windows.Forms.Button();
             this.rtxtArchivoTokens = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.rtxtDerivaciones = new System.Windows.Forms.RichTextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.lineNumbers_For_RichTextBox1 = new LineNumbers.LineNumbers_For_RichTextBox();
             this.lineNumbers_For_RichTextBox2 = new LineNumbers.LineNumbers_For_RichTextBox();
@@ -157,19 +157,19 @@ namespace AnalizadorSintactico
             this.label1.TabIndex = 28;
             this.label1.Text = "ARCHIVO TOKENS";
             // 
-            // richTextBox1
+            // rtxtDerivaciones
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(30, 470);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(368, 232);
-            this.richTextBox1.TabIndex = 39;
-            this.richTextBox1.Text = "";
+            this.rtxtDerivaciones.Location = new System.Drawing.Point(30, 470);
+            this.rtxtDerivaciones.Name = "rtxtDerivaciones";
+            this.rtxtDerivaciones.Size = new System.Drawing.Size(656, 232);
+            this.rtxtDerivaciones.TabIndex = 39;
+            this.rtxtDerivaciones.Text = "";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Modern No. 20", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(119, 438);
+            this.label4.Location = new System.Drawing.Point(265, 438);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(191, 29);
             this.label4.TabIndex = 40;
@@ -295,7 +295,7 @@ namespace AnalizadorSintactico
             this.Controls.Add(this.lineNumbers_For_RichTextBox2);
             this.Controls.Add(this.lineNumbers_For_RichTextBox1);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.rtxtDerivaciones);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.txtErrores);
             this.Controls.Add(this.lblErrores);
@@ -328,7 +328,7 @@ namespace AnalizadorSintactico
         private System.Windows.Forms.Button btnCargarPrograma;
         private System.Windows.Forms.RichTextBox rtxtArchivoTokens;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox rtxtDerivaciones;
         private System.Windows.Forms.Label label4;
         private LineNumbers.LineNumbers_For_RichTextBox lineNumbers_For_RichTextBox1;
         private LineNumbers.LineNumbers_For_RichTextBox lineNumbers_For_RichTextBox2;

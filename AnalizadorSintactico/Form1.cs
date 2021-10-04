@@ -13,6 +13,7 @@ namespace AnalizadorSintactico
 {
     public partial class Form1 : Form
     {
+        static List<string> lstDerivaciones = new List<string>();
         public Form1()
         {
             InitializeComponent();
@@ -46,13 +47,16 @@ namespace AnalizadorSintactico
 
         private void btnAnalizador_Click(object sender, EventArgs e)
         {
+            rtxtDerivaciones.Clear();
             string instrucciones = rtxtArchivoTokens.Text.Trim();
             //Arreglo para almacenar cada linea en una casilla diferente del arreglo para hacer la busqueda por instrucción
             string[] arrTokens = instrucciones.Split('\n').ToArray();
             string[] arrResultado = new string[arrTokens.Length];
             for (int i = 0; i < arrTokens.Length; i++)
             {
+                lstDerivaciones.Add(arrTokens[i]);
                 arrResultado[i] = BottomUp(arrTokens[i], 0);
+                lstDerivaciones.Add(arrResultado[i]);
             }
             string resultado = "";
             for (int i = 0; i < arrResultado.Length; i++)
@@ -60,6 +64,13 @@ namespace AnalizadorSintactico
                 resultado = resultado +  arrResultado[i] + "\n";
             }
             rtxtResultado.Text = resultado;
+            string derivaciones = ""; 
+            foreach (string derivacion in lstDerivaciones)
+            {
+                derivaciones = derivaciones + derivacion + "\n";
+            }
+            rtxtDerivaciones.Text = derivaciones;
+            lstDerivaciones.Clear();
         }
         string BottomUp(string cadena, int posicionInicial)
         {
@@ -148,6 +159,7 @@ namespace AnalizadorSintactico
             }
 
             nvaCadena = subCadena1.Trim() + " " + subcadena + " " + subCadena2.Trim();
+            lstDerivaciones.Add(nvaCadena);
             return nvaCadena.Trim();
         }
     }
