@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,7 +14,8 @@ namespace AnalizadorSintactico
 {
     public partial class Form1 : Form
     {
-        static List<string> lstDerivaciones = new List<string>();
+        List<string> lstDerivaciones = new List<string>();
+        List<string> lstErrores = new List<string>();
         public Form1()
         {
             InitializeComponent();
@@ -54,8 +56,36 @@ namespace AnalizadorSintactico
             string[] arrResultado = new string[arrTokens.Length];
             for (int i = 0; i < arrTokens.Length; i++)
             {
+                if (arrTokens[i].Contains("IDVA"))
+                {
+                    arrTokens[i] = ReemplazarIDVA(arrTokens[i]);
+
+                }
                 lstDerivaciones.Add(arrTokens[i]);
-                arrResultado[i] = BottomUp(arrTokens[i], 0);
+                if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
+                    || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
+                {
+                    if (arrTokens[i+1] == "CE07")
+                    {
+                        arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
+                        for (int z = i+1; z < arrTokens.Length; z++)
+                        {
+                            if (arrTokens[z].Contains("CE08"))
+                            {
+                                arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
+                            }
+                        }
+                        if (!arrTokens[i].Contains("CE08"))
+                        {
+                            lstErrores.Add("Linea " + i + ": Error de sintaxis");
+                        }
+                    }
+                    else
+                    {
+                        lstErrores.Add("Linea " + i + ": Error de sintaxis");
+                    }
+                }
+                arrResultado[i] = BottomUp(arrTokens[i], 0, i);
                 lstDerivaciones.Add(arrResultado[i]);
             }
             string resultado = "";
@@ -70,9 +100,16 @@ namespace AnalizadorSintactico
                 derivaciones = derivaciones + derivacion + "\n";
             }
             rtxtDerivaciones.Text = derivaciones;
+            string Errores = "";
+            foreach (string error in lstErrores)
+            {
+                Errores = Errores + error + "\n";
+            }
+            rtxtErrores.Text = Errores;
             lstDerivaciones.Clear();
+            lstErrores.Clear();
         }
-        string BottomUp(string cadena, int posicionInicial)
+        string BottomUp(string cadena, int posicionInicial, int numLinea)
         {
             int LongitudCadena = cadena.Trim().Split(' ').ToArray().Length;
             string cadenaActual = "";
@@ -81,6 +118,7 @@ namespace AnalizadorSintactico
             //Si la posición actual es mayor al número de tokens se devuelve la cadena (Aquí creo que también se debe manejar lo de errores)
             if(posicionInicial > TokensCadena.Length)
             {
+                lstErrores.Add("Linea " + numLinea +  ": Error de sintaxis");
                 return cadena;
             }
             //Aquí se forma la cadena que se va a reducir, es decir se indica desde que número de token se va a comenzar en la cadena para cuando no se encuentre toda completa
@@ -109,13 +147,13 @@ namespace AnalizadorSintactico
                 if (resultado != cadena)
                 {
                     cadena = ReemplazarCadena(cadena.Split(' ').ToArray(), posicionInicial, TokensCadena.Length, resultado);
-                    return (BottomUp(cadena, 0));
+                    return (BottomUp(cadena, 0, numLinea));
                 }
                 //En el caso de que la cadena no se haya reducido porque no se encoentro ninguna coincidencia, entonces se vuelve a buscar pero se
                 //mueve a la derecha la posición inicial para aplicar el método pero con un token menos.
                 else
                 {
-                    return (BottomUp(cadena, posicionInicial + 1));
+                    return (BottomUp(cadena, posicionInicial + 1, numLinea));
                 }
             }
         }
@@ -133,6 +171,7 @@ namespace AnalizadorSintactico
                     if(cadena == values[1])
                     {
                         resultado = values[0];
+                        reader.Dispose();
                         return resultado;
                     }
                     else
@@ -140,6 +179,7 @@ namespace AnalizadorSintactico
                         resultado = cadena;
                     }
                 }
+                reader.Dispose();
             }
             return resultado;
         }
@@ -161,6 +201,13 @@ namespace AnalizadorSintactico
             nvaCadena = subCadena1.Trim() + " " + subcadena + " " + subCadena2.Trim();
             lstDerivaciones.Add(nvaCadena);
             return nvaCadena.Trim();
+        }
+        string ReemplazarIDVA(string cadena)
+        {
+            string pattern = @"IDVA[0-9]";
+            string replace = "IDVA";
+            cadena = Regex.Replace(cadena, pattern, replace);
+            return cadena;
         }
     }
 }
