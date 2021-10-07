@@ -101,6 +101,7 @@ namespace AnalizadorSintactico
                 resultado = resultado +  arrResultado[i] + "\n";
             }
             rtxtResultado.Text = resultado;
+            
             string derivaciones = ""; 
             foreach (string derivacion in lstDerivaciones)
             {
