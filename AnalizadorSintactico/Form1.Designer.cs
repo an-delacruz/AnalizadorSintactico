@@ -45,6 +45,7 @@ namespace AnalizadorSintactico
             this.lineNumbers_For_RichTextBox1 = new LineNumbers.LineNumbers_For_RichTextBox();
             this.lineNumbers_For_RichTextBox2 = new LineNumbers.LineNumbers_For_RichTextBox();
             this.lineNumbers_For_RichTextBox3 = new LineNumbers.LineNumbers_For_RichTextBox();
+            this.btnEditar = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -130,7 +131,7 @@ namespace AnalizadorSintactico
             this.btnCargarPrograma.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btnCargarPrograma.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCargarPrograma.Font = new System.Drawing.Font("Century", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCargarPrograma.Location = new System.Drawing.Point(172, 372);
+            this.btnCargarPrograma.Location = new System.Drawing.Point(104, 372);
             this.btnCargarPrograma.Name = "btnCargarPrograma";
             this.btnCargarPrograma.Size = new System.Drawing.Size(79, 41);
             this.btnCargarPrograma.TabIndex = 30;
@@ -286,11 +287,26 @@ namespace AnalizadorSintactico
             this.lineNumbers_For_RichTextBox3.Size = new System.Drawing.Size(17, 319);
             this.lineNumbers_For_RichTextBox3.TabIndex = 43;
             // 
+            // btnEditar
+            // 
+            this.btnEditar.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.btnEditar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnEditar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnEditar.Font = new System.Drawing.Font("Century", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnEditar.Location = new System.Drawing.Point(217, 372);
+            this.btnEditar.Name = "btnEditar";
+            this.btnEditar.Size = new System.Drawing.Size(79, 41);
+            this.btnEditar.TabIndex = 44;
+            this.btnEditar.Text = "Editar";
+            this.btnEditar.UseVisualStyleBackColor = false;
+            this.btnEditar.Click += new System.EventHandler(this.btnEditar_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1301, 714);
+            this.Controls.Add(this.btnEditar);
             this.Controls.Add(this.lineNumbers_For_RichTextBox3);
             this.Controls.Add(this.lineNumbers_For_RichTextBox2);
             this.Controls.Add(this.lineNumbers_For_RichTextBox1);
@@ -333,6 +349,7 @@ namespace AnalizadorSintactico
         private LineNumbers.LineNumbers_For_RichTextBox lineNumbers_For_RichTextBox1;
         private LineNumbers.LineNumbers_For_RichTextBox lineNumbers_For_RichTextBox2;
         private LineNumbers.LineNumbers_For_RichTextBox lineNumbers_For_RichTextBox3;
+        private System.Windows.Forms.Button btnEditar;
     }
 }
 

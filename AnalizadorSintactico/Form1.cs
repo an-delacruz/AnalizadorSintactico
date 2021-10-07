@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Data.SqlClient;
 
 namespace AnalizadorSintactico
 {
@@ -53,6 +54,8 @@ namespace AnalizadorSintactico
             string instrucciones = rtxtArchivoTokens.Text.Trim();
             //Arreglo para almacenar cada linea en una casilla diferente del arreglo para hacer la busqueda por instrucción
             string[] arrTokens = instrucciones.Split('\n').ToArray();
+            List<string> lstTokens = new List<string>();
+            lstTokens = arrTokens.ToList();
             string[] arrResultado = new string[arrTokens.Length];
             for (int i = 0; i < arrTokens.Length; i++)
             {
@@ -68,11 +71,15 @@ namespace AnalizadorSintactico
                     if (arrTokens[i+1] == "CE07")
                     {
                         arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
+                        //arrTokens[i+1] = "";
+                        
+                        
                         for (int z = i+1; z < arrTokens.Length; z++)
                         {
                             if (arrTokens[z].Contains("CE08"))
                             {
                                 arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
+                                //arrTokens[z] = "";
                             }
                         }
                         if (!arrTokens[i].Contains("CE08"))
@@ -85,7 +92,7 @@ namespace AnalizadorSintactico
                         lstErrores.Add("Linea " + i + ": Error de sintaxis");
                     }
                 }
-                arrResultado[i] = BottomUp(arrTokens[i], 0, i);
+                arrResultado[i] = BottomUp(arrTokens[i], 0, i+1);
                 lstDerivaciones.Add(arrResultado[i]);
             }
             string resultado = "";
@@ -106,101 +113,140 @@ namespace AnalizadorSintactico
                 Errores = Errores + error + "\n";
             }
             rtxtErrores.Text = Errores;
+            txtErrores.Text = lstErrores.Count().ToString();
             lstDerivaciones.Clear();
             lstErrores.Clear();
         }
         string BottomUp(string cadena, int posicionInicial, int numLinea)
         {
+            string resultado = "";
             int LongitudCadena = cadena.Trim().Split(' ').ToArray().Length;
             string cadenaActual = "";
+            string cadenaAuxiliar = "";
             //Arreglo con los tokens que contiene la cadena que se va a reducir.
             string[] TokensCadena = cadena.Trim().Split(' ').ToArray();
-            //Si la posición actual es mayor al número de tokens se devuelve la cadena (Aquí creo que también se debe manejar lo de errores)
-            if(posicionInicial > TokensCadena.Length)
+            int c = 0;
+            if (cadena == "CE07" || cadena == "CE08")
             {
-                lstErrores.Add("Linea " + numLinea +  ": Error de sintaxis");
-                return cadena;
+                return "";
             }
-            //Aquí se forma la cadena que se va a reducir, es decir se indica desde que número de token se va a comenzar en la cadena para cuando no se encuentre toda completa
-            for (int i = posicionInicial; i < TokensCadena.Length; i++)
+            while (c < TokensCadena.Length)
             {
-                if(i == posicionInicial)
+                //Si la posición actual es mayor al número de tokens se devuelve la cadena (Aquí creo que también se debe manejar lo de errores)
+                if (posicionInicial > TokensCadena.Length)
                 {
-                    cadenaActual = cadenaActual + TokensCadena[i];
+                    lstErrores.Add("Linea " + numLinea + ": Error de sintaxis");
+                    return cadena;
+                }
+                //Aquí se forma la cadena que se va a reducir, es decir se indica desde que número de token se va a comenzar en la cadena para cuando no se encuentre toda completa
+                int numTokensABuscar = TokensCadena.Length - posicionInicial;
+                for (int x = 0; x + numTokensABuscar <= TokensCadena.Length; x++)
+                {
+                    for (int i = x; i < numTokensABuscar + x; i++)
+                    {
+                        if (i == x)
+                        {
+                            cadenaAuxiliar = cadenaAuxiliar + TokensCadena[i];
+                        }
+                        else
+                        {
+                            cadenaAuxiliar = cadenaAuxiliar + " " + TokensCadena[i];
+                        }
+                    }
+                    cadenaActual = cadenaAuxiliar;
+                    cadenaAuxiliar = "";
+                    resultado = BuscarGramatica(cadenaActual);
+                    //Si la busqueda en la gramática devuelve S, entonces ya se término de reducir la cadena enviada.
+                    if (resultado != cadenaActual)
+                    {
+                        break;
+                    }
+                }
+                if (resultado == "S")
+                {
+                    return resultado;
                 }
                 else
                 {
-                    cadenaActual = cadenaActual + " " + TokensCadena[i];
+                    //Si el resultado regresado del metodo BuscarGramatica no es S, en el caso de que haya habido una reducción aquí se hace el reemplazo de la parte que se redujo
+                    //y se vuelve a aplicar el método bottom up
+                    if (resultado != cadenaActual)
+                    {
+                        cadena = ReemplazarCadena(cadena, cadenaActual, resultado);
+                        TokensCadena = cadena.Trim().Split(' ').ToArray();
+                        lstDerivaciones.Add(cadena);
+                        posicionInicial = 0;
+                    }
+                    //En el caso de que la cadena no se haya reducido porque no se encoentro ninguna coincidencia, entonces se vuelve a buscar pero se
+                    //mueve a la derecha la posición inicial para aplicar el método pero con un token menos.
+                    else
+                    {
+                        posicionInicial = posicionInicial + 1;
+                    }
                 }
+
             }
-            string resultado;
-            resultado = BuscarGramatica(cadenaActual);
-            //Si la busqueda en la gramática devuelve S, entonces ya se término de reducir la cadena enviada.
-            if (resultado == "S")
-            {
-                return resultado;
-            }
-            else
-            {
-                //Si el resultado regresado del metodo BuscarGramatica no es S, en el caso de que haya habido una reducción aquí se hace el reemplazo de la parte que se redujo
-                //y se vuelve a aplicar el método bottom up
-                if (resultado != cadena)
-                {
-                    cadena = ReemplazarCadena(cadena.Split(' ').ToArray(), posicionInicial, TokensCadena.Length, resultado);
-                    return (BottomUp(cadena, 0, numLinea));
-                }
-                //En el caso de que la cadena no se haya reducido porque no se encoentro ninguna coincidencia, entonces se vuelve a buscar pero se
-                //mueve a la derecha la posición inicial para aplicar el método pero con un token menos.
-                else
-                {
-                    return (BottomUp(cadena, posicionInicial + 1, numLinea));
-                }
-            }
+            return "";
         }
+
         //Método para buscar la cadena actual en la parte derecha de la gramática, si se encuentra se devuelve la parte izquierda,
         //sino, se devuelve la misma cadena que se busco
         string BuscarGramatica(string cadena)
         {
             string resultado = "";
-            using (var reader = new StreamReader("./Resources/Eq.-1-Gramáticas-libres-de-contexto.csv"))
+            string cadenacon = "Data Source=DESKTOP-ANTONIO\\SQLEXPRESS;Initial Catalog=AUTOMATAS;Integrated Security=True";
+            using (SqlConnection cnn = new SqlConnection(cadenacon))
             {
-                while (!reader.EndOfStream)
+                cnn.Open();
+                SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "'", cnn);
+                int coincidencias = int.Parse(sqlCommand.ExecuteScalar().ToString());
+                if (coincidencias > 0)
                 {
-                    var line = reader.ReadLine();
-                    var values = line.Split(',');
-                    if(cadena == values[1])
-                    {
-                        resultado = values[0];
-                        reader.Dispose();
-                        return resultado;
-                    }
-                    else
-                    {
-                        resultado = cadena;
-                    }
+                    sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "'", cnn);
+                    resultado = sqlCommand.ExecuteScalar().ToString();
                 }
-                reader.Dispose();
+                else
+                {
+                    resultado = cadena;
+                }
             }
+            //using (var reader = new StreamReader("./Resources/Eq.-1-Gramaticas-libres-de-contexto.csv"))
+            //{
+            //    while (!reader.EndOfStream)
+            //    {
+            //        var line = reader.ReadLine();
+            //        var values = line.Split(',');
+            //        if(cadena == values[1])
+            //        {
+            //            resultado = values[0];
+            //            reader.Dispose();
+            //            return resultado;
+            //        }
+            //        else
+            //        {
+            //            resultado = cadena;
+            //        }
+            //    }
+
+            //    reader.Dispose();
+            //}
             return resultado;
         }
         //Método para reemplazar las partes de la cadena que ya se han encontrado en la gramatica.
-        string ReemplazarCadena(string[] cadenaActual, int posicionInicial, int posicionFinal, string subcadena)
+        string ReemplazarCadena(string strcadenaActual, string subcadenaAnterior, string subcadenaNueva)
         {
-            string nvaCadena;
+            string Resultado = "";
             string subCadena1 = "";
-            string subCadena2 = "";         
-            for (int i = 0; i < posicionInicial; i++)
+            string subCadena2 = "";
+            if (strcadenaActual.Contains(subcadenaAnterior) )
             {
-                subCadena1 = subCadena1 + cadenaActual[i] + " ";
+                int posInicio;
+                posInicio = strcadenaActual.IndexOf(subcadenaAnterior, 0);
+                subCadena1 = strcadenaActual.Substring(0, posInicio);
+                subCadena2 = strcadenaActual.Substring(posInicio + subcadenaAnterior.Length);
+                Resultado = subCadena1  + subcadenaNueva  + subCadena2;
             }
-            for (int i = posicionFinal; i < cadenaActual.Length; i++)
-            {
-                subCadena2 = subCadena2 + cadenaActual[i] + " ";
-            }
-
-            nvaCadena = subCadena1.Trim() + " " + subcadena + " " + subCadena2.Trim();
-            lstDerivaciones.Add(nvaCadena);
-            return nvaCadena.Trim();
+            return Resultado;
         }
         string ReemplazarIDVA(string cadena)
         {
@@ -208,6 +254,11 @@ namespace AnalizadorSintactico
             string replace = "IDVA";
             cadena = Regex.Replace(cadena, pattern, replace);
             return cadena;
+        }
+
+        private void btnEditar_Click(object sender, EventArgs e)
+        {
+            rtxtArchivoTokens.Enabled = true;
         }
     }
 }

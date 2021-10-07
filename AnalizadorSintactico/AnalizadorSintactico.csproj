@@ -72,7 +72,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="bin\Debug\Resources\Eq.-1-Gramáticas-libres-de-contexto.csv" />
+    <None Include="bin\Debug\Resources\Eq.-1-Gramaticas-libres-de-contexto.csv" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
