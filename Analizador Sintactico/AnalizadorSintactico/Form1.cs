@@ -57,6 +57,7 @@ namespace AnalizadorSintactico
             List<string> lstTokens = new List<string>();
             lstTokens = arrTokens.ToList();
             string[] arrResultado = new string[arrTokens.Length];
+            List<string> lstCorchetes = new List<string>();
             for (int i = 0; i < arrTokens.Length; i++)
             {
                 if (arrTokens[i].Contains("IDVA"))
@@ -66,13 +67,13 @@ namespace AnalizadorSintactico
                 }
                 lstDerivaciones.Add(arrTokens[i]);
                 if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
-                    || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
+                    || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12") || arrTokens[i].Contains("PR22"))
                 {
                     if (arrTokens[i+1] == "CE07")
                     {
                         arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
                         //arrTokens[i+1] = "";
-                        
+                        lstCorchetes.Add("IMPAR");
                         
                         for (int z = i+1; z < arrTokens.Length; z++)
                         {
@@ -80,16 +81,17 @@ namespace AnalizadorSintactico
                             {
                                 arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
                                 //arrTokens[z] = "";
+                                lstCorchetes.Add("PAR");
                             }
                         }
                         if (!arrTokens[i].Contains("CE08"))
                         {
-                            lstErrores.Add("Linea " + i + ": Error de sintaxis");
+                            lstErrores.Add("Linea " + i + ": Error de sintaxis - Corchete abierto pero no cerrado");
                         }
                     }
                     else
                     {
-                        lstErrores.Add("Linea " + i + ": Error de sintaxis");
+                        lstErrores.Add("Linea " + i + ": Error de sintaxis - Corchete no abierto");
                     }
                 }
                 arrResultado[i] = BottomUp(arrTokens[i], 0, i+1);
