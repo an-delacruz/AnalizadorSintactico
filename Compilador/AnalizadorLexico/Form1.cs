@@ -155,10 +155,10 @@ namespace AnalizadorLexico
                     if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
                         || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12") || arrTokens[i].Contains("PR22"))
                     {
-                        if (arrTokens[i + 1] == "CE07")
+                        if (arrTokens[i].Contains("CE07") || arrTokens[i + 1].Contains("CE07"))
                         {
                             arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
-                            //arrTokens[i+1] = "";
+                            arrTokens[i+1] = "";
                             lstCorchetes.Add("IMPAR");
 
                             for (int z = i + 1; z < arrTokens.Length; z++)
@@ -166,7 +166,7 @@ namespace AnalizadorLexico
                                 if (arrTokens[z].Contains("CE08"))
                                 {
                                     arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
-                                    //arrTokens[z] = "";
+                                    arrTokens[z] = "";
                                     lstCorchetes.Add("PAR");
                                 }
                             }
@@ -228,9 +228,9 @@ namespace AnalizadorLexico
             //Arreglo con los tokens que contiene la cadena que se va a reducir.
             string[] TokensCadena = cadena.Trim().Split(' ').ToArray();
             int c = 0;
-            if (cadena == "CE07" || cadena == "CE08")
+            if (cadena == "")
             {
-                return "";
+                return cadena;
             }
             while (c < TokensCadena.Length)
             {
