@@ -146,29 +146,124 @@ namespace AnalizadorLexico
                 List<string> lstCorchetes = new List<string>();
                 for (int i = 0; i < arrTokens.Length; i++)
                 {
+                    if (arrTokens[i].Contains("TABU"))
+                    {
+                        arrTokens[i] = arrTokens[i].Replace("TABU", "").Trim();
+                    }
                     if (arrTokens[i].Contains("ID"))
                     {
                         arrTokens[i] = ReemplazarIDVA(arrTokens[i]);
 
                     }
-                    lstDerivaciones.Add(arrTokens[i]);
+                }
+                for (int i = 0; i < arrTokens.Length; i++)
+                {
+
+                    //lstDerivaciones.Add(arrTokens[i]);
                     if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
-                        || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12") || arrTokens[i].Contains("PR22"))
+                        || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
                     {
-                        if (arrTokens[i].Contains("CE07") || arrTokens[i + 1].Contains("CE07"))
+                        if (arrTokens[i + 1].Contains("CE07"))
                         {
                             arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
                             arrTokens[i+1] = "";
                             lstCorchetes.Add("IMPAR");
-
+                            string ultimocaseevaluado = "";
+                            string listacase = "";
                             for (int z = i + 1; z < arrTokens.Length; z++)
                             {
+
+                                //Acomodo de los casos, fincasos y default
+                                if (arrTokens[i].Contains("PR23") && (arrTokens[z].Contains("PR04") || arrTokens[z].Contains("PR06")) && !arrTokens[i].Contains("CE08"))
+                                {
+                                    listacase = ultimocaseevaluado;
+                                    string caso = "";
+                                    if (arrTokens[z].Contains("PR06"))
+                                    {
+                                        listacase = listacase + " " + arrTokens[z];
+                                       
+                                        listacase = listacase.Trim();
+                                    }
+                                    for (int y = z; y < arrTokens.Length; y++)
+                                    {
+                                        if (arrTokens[y] == "PR11" && arrTokens[z].Contains("PR04"))
+                                        {
+                                            caso = arrTokens[z] + " " + arrTokens[y];
+                                            arrTokens[y] = "";
+                                            arrTokens[z] = "";
+                                            break;
+                                        }
+                                        if (arrTokens[y] == "PR11" && arrTokens[z].Contains("PR06"))
+                                        {
+                                            listacase = listacase + " " + arrTokens[y];
+                                            arrTokens[y] = "";
+                                            arrTokens[z] = "";
+                                            break;
+                                        }
+                                    }
+                                    caso = BottomUp(caso,0,z);
+                                    if (caso == "LISTACASE" || listacase.Contains("PR06"))
+                                    {
+                                        if (caso == "LISTACASE")
+                                        {
+                                            ultimocaseevaluado = caso;
+                                        }
+                                        else
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Error en el CASO");
+                                    }
+                                }
                                 if (arrTokens[z].Contains("CE08"))
                                 {
+
+                                    arrTokens[i] = arrTokens[i] + " " + listacase;
+                                    arrTokens[i] = arrTokens[i].Trim();
                                     arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
                                     arrTokens[z] = "";
                                     lstCorchetes.Add("PAR");
+                                    if (!arrTokens[i].Contains("PR21"))
+                                    {
+                                        break;
+                                    }
                                 }
+                                //Acomodo del sino para el sí y su verficación
+                                if (arrTokens[i].Contains("PR21") && arrTokens[z].Contains("PR22"))
+                                {
+                                    string sino = "";
+                                    sino = arrTokens[z];
+                                    arrTokens[z] = "";
+                                    if (arrTokens[z+1].Contains("CE07"))
+                                    {
+                                        sino = sino + " " + arrTokens[z+1];
+                                        arrTokens[z + 1] = "";
+                                        lstCorchetes.Add("IMPAR");
+                                        for (int y = z+1; y < arrTokens.Length; y++)
+                                        {
+                                            if (arrTokens[y].Contains("CE08"))
+                                            {
+                                                sino = sino + " " + arrTokens[y];
+                                                arrTokens[y] = "";
+                                                lstCorchetes.Add("PAR");
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Corchete no abierto");
+                                    }
+                                    if (!sino.Contains("CE08"))
+                                    {
+                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Corchete abierto pero no cerrado");
+                                    }
+                                    arrTokens[i] = arrTokens[i] + " " + BottomUp(sino,0,z);
+                                }
+
                             }
                             if (!arrTokens[i].Contains("CE08"))
                             {
@@ -182,6 +277,7 @@ namespace AnalizadorLexico
                     }
                     if(!arrTokens[i].Contains("Error"))
                     {
+                        lstDerivaciones.Add(arrTokens[i]);
                         arrResultado[i] = BottomUp(arrTokens[i], 0, i + 1);
                         lstDerivaciones.Add(arrResultado[i]);
                     }
@@ -237,7 +333,10 @@ namespace AnalizadorLexico
                 //Si la posición actual es mayor al número de tokens se devuelve la cadena (Aquí creo que también se debe manejar lo de errores)
                 if (posicionInicial > TokensCadena.Length)
                 {
-                    lstErroresSintacticos.Add("Linea " + numLinea + ": Error de sintaxis");
+                    if (cadena != "LISTACASE" && cadena != "SINO")
+                    {
+                        lstErroresSintacticos.Add("Linea " + numLinea + ": Error de sintaxis");
+                    }
                     return cadena;
                 }
                 //Aquí se forma la cadena que se va a reducir, es decir se indica desde que número de token se va a comenzar en la cadena para cuando no se encuentre toda completa

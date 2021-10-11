@@ -173,7 +173,7 @@ namespace AnalizadorLexico
             this.btnAnalizador.Font = new System.Drawing.Font("Century", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAnalizador.Location = new System.Drawing.Point(385, 226);
             this.btnAnalizador.Name = "btnAnalizador";
-            this.btnAnalizador.Size = new System.Drawing.Size(140, 71);
+            this.btnAnalizador.Size = new System.Drawing.Size(134, 71);
             this.btnAnalizador.TabIndex = 13;
             this.btnAnalizador.Text = "Ejecutar analizador";
             this.btnAnalizador.UseVisualStyleBackColor = false;
