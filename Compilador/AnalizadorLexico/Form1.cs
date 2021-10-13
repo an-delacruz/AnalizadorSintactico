@@ -321,6 +321,7 @@ namespace AnalizadorLexico
             int LongitudCadena = cadena.Trim().Split(' ').ToArray().Length;
             string cadenaActual = "";
             string cadenaAuxiliar = "";
+            bool cadenaCompleta = true;
             //Arreglo con los tokens que contiene la cadena que se va a reducir.
             string[] TokensCadena = cadena.Trim().Split(' ').ToArray();
             int c = 0;
@@ -356,7 +357,12 @@ namespace AnalizadorLexico
                     }
                     cadenaActual = cadenaAuxiliar;
                     cadenaAuxiliar = "";
-                    resultado = BuscarGramatica(cadenaActual);
+                    if (cadenaActual.Trim().Split(' ').ToArray().Length == TokensCadena.Length)
+                    {
+                        cadenaCompleta = true;
+                    }
+                    else cadenaCompleta = false;
+                    resultado = BuscarGramatica(cadenaActual, cadenaCompleta);
                     //Si la busqueda en la gramática devuelve S, entonces ya se término de reducir la cadena enviada.
                     if (resultado != cadenaActual)
                     {
@@ -392,24 +398,42 @@ namespace AnalizadorLexico
 
         //Método para buscar la cadena actual en la parte derecha de la gramática, si se encuentra se devuelve la parte izquierda,
         //sino, se devuelve la misma cadena que se busco
-        string BuscarGramatica(string cadena)
+        string BuscarGramatica(string cadena, bool cadenaCompleta)
         {
             string resultado = "";
             string cadenacon = "Data Source=DESKTOP-ANTONIO\\SQLEXPRESS;Initial Catalog=AUTOMATAS;Integrated Security=True";
             using (SqlConnection cnn = new SqlConnection(cadenacon))
             {
                 cnn.Open();
-                SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "'", cnn);
-                int coincidencias = int.Parse(sqlCommand.ExecuteScalar().ToString());
-                if (coincidencias > 0)
+                if (cadenaCompleta)
                 {
-                    sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "'", cnn);
-                    resultado = sqlCommand.ExecuteScalar().ToString();
+                    SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "' AND (Simbolo = 'S' OR Simbolo = 'OPAG' OR Simbolo = 'SINO' OR Simbolo = 'CASE' OR Simbolo = 'LISTACASE')", cnn);
+                    int coincidencias = int.Parse(sqlCommand.ExecuteScalar().ToString());
+                    if (coincidencias > 0)
+                    {
+                        sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "' AND (Simbolo = 'S' OR Simbolo = 'OPAG' OR Simbolo = 'SINO' OR Simbolo = 'CASE' OR Simbolo = 'LISTACASE')", cnn);
+                        resultado = sqlCommand.ExecuteScalar().ToString();
+                    }
+                    else
+                    {
+                        resultado = cadena;
+                    }
                 }
-                else
+                else if (!cadenaCompleta)
                 {
-                    resultado = cadena;
+                    SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S'", cnn);
+                    int coincidencias = int.Parse(sqlCommand.ExecuteScalar().ToString());
+                    if (coincidencias > 0)
+                    {
+                        sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S'", cnn);
+                        resultado = sqlCommand.ExecuteScalar().ToString();
+                    }
+                    else
+                    {
+                        resultado = cadena;
+                    }
                 }
+
             }
             return resultado;
         }
