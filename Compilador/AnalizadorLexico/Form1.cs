@@ -158,7 +158,7 @@ namespace AnalizadorLexico
                 }
                 for (int i = 0; i < arrTokens.Length; i++)
                 {
-
+                    string sino = "";
                     //lstDerivaciones.Add(arrTokens[i]);
                     if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
                         || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
@@ -247,7 +247,7 @@ namespace AnalizadorLexico
                                 //Acomodo del sino para el sí y su verficación
                                 if (arrTokens[i].Contains("PR21") && arrTokens[z].Contains("PR22"))
                                 {
-                                    string sino = "";
+                                   
                                     sino = arrTokens[z];
                                     arrTokens[z] = "";
                                     if (arrTokens[z+1].Contains("CE07"))
@@ -274,9 +274,8 @@ namespace AnalizadorLexico
                                     {
                                         lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Corchete abierto pero no cerrado");
                                     }
-                                    arrTokens[i] = arrTokens[i] + " " + BottomUp(sino,0,z);
+                                    sino = BottomUp(sino,0,z);
                                 }
-
                             }
                             if (!arrTokens[i].Contains("CE08"))
                             {
@@ -290,8 +289,19 @@ namespace AnalizadorLexico
                     }
                     if(!arrTokens[i].Contains("Error"))
                     {
-                        lstDerivaciones.Add(arrTokens[i]);
-                        arrResultado[i] = BottomUp(arrTokens[i], 0, i + 1);
+                        if (arrTokens[i].Contains("PR21"))
+                        {
+                            string si = arrTokens[i] + " " + sino;
+                            lstDerivaciones.Add(si);
+                            
+                            arrResultado[i] = BottomUp(si, 0, i + 1);
+                        }
+                        else
+                        {
+                            lstDerivaciones.Add(arrTokens[i]);
+                            arrResultado[i] = BottomUp(arrTokens[i], 0, i + 1);
+                        }
+
                         lstDerivaciones.Add(arrResultado[i]);
                     }
                 }
