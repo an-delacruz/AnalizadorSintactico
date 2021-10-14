@@ -218,7 +218,20 @@ namespace AnalizadorLexico
                                         lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Error en el CASO");
                                     }
                                 }
-                                if (arrTokens[z].Contains("CE08"))
+                                if (arrTokens[z].Contains("CE08") && !arrTokens[i].Contains("PR12") && !arrTokens[z].Contains("PR19"))
+                                {
+
+                                    arrTokens[i] = arrTokens[i] + " " + listacase;
+                                    arrTokens[i] = arrTokens[i].Trim();
+                                    arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
+                                    arrTokens[z] = "";
+                                    lstCorchetes.Add("PAR");
+                                    if (!arrTokens[i].Contains("PR21"))
+                                    {
+                                        break;
+                                    }
+                                }
+                                if (arrTokens[z].Contains("CE08") && arrTokens[i].Contains("PR12") && arrTokens[z].Contains("PR19"))
                                 {
 
                                     arrTokens[i] = arrTokens[i] + " " + listacase;
