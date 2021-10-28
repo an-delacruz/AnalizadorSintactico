@@ -119,6 +119,8 @@ namespace AnalizadorLexico
                                     break;
                                 }
                             }
+
+
                             lstIdentificadores.Add(miIden);
                         }
                         foreach (Identificador identificador in lstIdentificadores)

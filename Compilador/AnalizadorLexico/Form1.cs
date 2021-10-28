@@ -18,7 +18,7 @@ namespace AnalizadorLexico
     {
         EjecutorQuerys miConexion = new EjecutorQuerys();
         List<string> lstDerivaciones = new List<string>();
-        List<string> lstErroresSintacticos = new List<string>();
+        List<string> lstErroresSintacticosSemanticos = new List<string>();
         public Form1()
         {
             InitializeComponent();
@@ -26,10 +26,10 @@ namespace AnalizadorLexico
         }
         private void btnAnalizador_Click(object sender, EventArgs e)
         {
-            #region Léxico
+            
             try
             {
-
+                #region Léxico
                 miConexion.Conectar();
                 //archivoTOken
                 int iToken = 0;       //Iterador para el recorrido de los token en el foreach
@@ -133,9 +133,7 @@ namespace AnalizadorLexico
                     btnGuardarTabla.ForeColor = Color.Green;
                 }
                 #endregion
-
-
-                #region Sintactico
+                #region SintacticoSemántica
                 rtxtDerivaciones.Clear();
                 string instrucciones = rtxtArchivoTokens.Text.Trim();
                 //Arreglo para almacenar cada linea en una casilla diferente del arreglo para hacer la busqueda por instrucción
@@ -144,6 +142,26 @@ namespace AnalizadorLexico
                 lstTokens = arrTokens.ToList();
                 string[] arrResultado = new string[arrTokens.Length];
                 List<string> lstCorchetes = new List<string>();
+
+                //Verificar que la primera palabra sea INICIO y la ultima FIN y que solo haya una.
+                if (!arrTokens[0].Equals("PR15")){lstErroresSintacticosSemanticos.Add("Linea " + 1 + ": Error de semántica - Se esperaba la instrucción INICIO");}
+                if (!arrTokens[arrTokens.Length - 1].Equals("PR10")) { lstErroresSintacticosSemanticos.Add("Linea " + arrTokens.Length + ": Error de semántica - Se esperaba la instrucción FIN"); }
+                
+                //Verificar que todos los identificadores usados hayan sido declarados.
+                foreach (Identificador identificador in miAutomata.lstIdentificadores)
+                {
+                    if (identificador.TipoDato == null || identificador.TipoDato == "")
+                    {
+                        for (int i = 0; i < arrTokens.Length; i++)
+                        {
+                            if (arrTokens[i].Contains("ID" + identificador.Numero.ToString().PadLeft(2, '0')))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Identificador no declarado");
+                            }
+                        }
+                    }
+                }
+
                 for (int i = 0; i < arrTokens.Length; i++)
                 {
                     if (arrTokens[i].Contains("TABU"))
@@ -155,7 +173,9 @@ namespace AnalizadorLexico
                         arrTokens[i] = ReemplazarIDVA(arrTokens[i]);
 
                     }
+                    if((arrTokens[i].Equals("PR10") || arrTokens[i].Equals("PR15")) && i != 0 && i != arrTokens.Length-1) { lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Instrucción inesperada");}
                 }
+
                 for (int i = 0; i < arrTokens.Length; i++)
                 {
                     string sino = "";
@@ -164,10 +184,12 @@ namespace AnalizadorLexico
                         || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
                     {
                         if (arrTokens[i + 1].Contains("CE07"))
+                        //if (lstCorchetes.Contains("ABIERTO"))
                         {
+
                             arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
+                            //arrTokens[i] = arrTokens[i] + " " + "CE03";
                             arrTokens[i+1] = "";
-                            lstCorchetes.Add("IMPAR");
                             string ultimocaseevaluado = "";
                             string listacase = "";
                             for (int z = i + 1; z < arrTokens.Length; z++)
@@ -215,10 +237,10 @@ namespace AnalizadorLexico
                                     }
                                     else
                                     {
-                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Error en el CASO");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + z + ": Error de sintaxis - Error en el CASO");
                                     }
                                 }
-                                if (arrTokens[z].Contains("CE08") && !arrTokens[i].Contains("PR12") && !arrTokens[z].Contains("PR19"))
+                                if (arrTokens[z].Contains("CE08") && !arrTokens[i].Contains("CE08") && !arrTokens[i].Contains("PR12") && !arrTokens[z].Contains("PR19"))
                                 {
 
                                     arrTokens[i] = arrTokens[i] + " " + listacase;
@@ -231,7 +253,7 @@ namespace AnalizadorLexico
                                         break;
                                     }
                                 }
-                                if (arrTokens[z].Contains("CE08") && arrTokens[i].Contains("PR12") && arrTokens[z].Contains("PR19"))
+                                if (arrTokens[z].Contains("CE08")  &&  arrTokens[i].Contains("PR12") && arrTokens[z].Contains("PR19"))
                                 {
 
                                     arrTokens[i] = arrTokens[i] + " " + listacase;
@@ -268,23 +290,23 @@ namespace AnalizadorLexico
                                     }
                                     else
                                     {
-                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Corchete no abierto");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Corchete no abierto");
                                     }
                                     if (!sino.Contains("CE08"))
                                     {
-                                        lstErroresSintacticos.Add("Linea " + z + ": Error de sintaxis - Corchete abierto pero no cerrado");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Corchete abierto pero no cerrado");
                                     }
                                     sino = BottomUp(sino,0,z);
                                 }
                             }
                             if (!arrTokens[i].Contains("CE08"))
                             {
-                                lstErroresSintacticos.Add("Linea " + i + ": Error de sintaxis - Corchete abierto pero no cerrado");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de sintaxis - Corchete abierto pero no cerrado");
                             }
                         }
                         else
                         {
-                            lstErroresSintacticos.Add("Linea " + i + ": Error de sintaxis - Corchete no abierto");
+                            lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de sintaxis - Corchete no abierto");
                         }
                     }
                     if(!arrTokens[i].Contains("Error"))
@@ -318,16 +340,62 @@ namespace AnalizadorLexico
                     derivaciones = derivaciones + derivacion + "\n";
                 }
                 rtxtDerivaciones.Text = derivaciones;
-                foreach (string error in lstErroresSintacticos)
+
+                //Balanceo de parentesis
+                int balanceParentesis = 0;
+                for (int i = 0; i < arrTokens.Length; i++)
+                {
+                    if (arrTokens[i].Contains("CE03"))
+                    {
+                        balanceParentesis++;
+                    }
+                    if (arrTokens[i].Contains("CE04"))
+                    {
+                        balanceParentesis--;
+                    }
+                }
+
+                if (balanceParentesis != 0)
+                {
+                    if (balanceParentesis > 0)
+                    {
+                        for (int i = arrTokens.Length-1; i >= 0; i--)
+                        {
+                            if (arrTokens[i].Contains("CE03") && !arrTokens[i].Contains("CE04"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
+                            }
+                        }
+                    }
+                    else if (balanceParentesis < 0)
+                    {
+                        for (int i = arrTokens.Length-1; i >= 0; i--)
+                        {
+                            if (arrTokens[i].Contains("CE04") && !arrTokens[i].Contains("CE03"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
+                            }
+                        }
+                    }
+                }
+
+                foreach (string error in lstErroresSintacticosSemanticos)
                 {
                     Errores = Errores + error + "\n";
                 }
                 rtxtErrores.Text = Errores;
-                txtErrores.Text = (miAutomata.lstErrores.Count + lstErroresSintacticos.Count).ToString();
+                txtErrores.Text = (miAutomata.lstErrores.Count + lstErroresSintacticosSemanticos.Count).ToString();
 
                 lstDerivaciones.Clear();
-                lstErroresSintacticos.Clear();
+                lstErroresSintacticosSemanticos.Clear();
                 #endregion
+
+
+
+
+
+
+
             }
             catch (Exception Ex)
             {
@@ -359,7 +427,7 @@ namespace AnalizadorLexico
                 {
                     if (cadena != "LISTACASE" && cadena != "SINO")
                     {
-                        lstErroresSintacticos.Add("Linea " + numLinea + ": Error de sintaxis");
+                        lstErroresSintacticosSemanticos.Add("Linea " + numLinea + ": Error de sintaxis");
                     }
                     return cadena;
                 }
