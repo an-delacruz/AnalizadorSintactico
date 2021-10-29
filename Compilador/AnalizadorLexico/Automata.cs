@@ -12,10 +12,10 @@ namespace AnalizadorLexico
     {
         public List<Token> lstTokens = new List<Token>();
         public List<Error> lstErrores = new List<Error>();
-        public List<Identificador> lstIdentificadores = new List<Identificador>();
+        public static List<Identificador> lstIdentificadores = new List<Identificador>();
         public List<Constante> lstConstantes = new List<Constante>();
         List<string> lsttipoDatos = new List<string>(new string[] { "ENTERO", "CADENA", "CARACTER", "BOOL", "REAL" });
-        
+        public static List<string> lstOPAG = new List<string>();
 
         private Estado _EstadoActual;
         public Estado EstadoActual

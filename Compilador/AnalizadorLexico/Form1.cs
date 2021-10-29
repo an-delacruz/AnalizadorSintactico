@@ -19,6 +19,7 @@ namespace AnalizadorLexico
         EjecutorQuerys miConexion = new EjecutorQuerys();
         List<string> lstDerivaciones = new List<string>();
         List<string> lstErroresSintacticosSemanticos = new List<string>();
+        
         public Form1()
         {
             InitializeComponent();
@@ -29,6 +30,9 @@ namespace AnalizadorLexico
             
             try
             {
+                Automata.lstOPAG.Clear();
+                Automata.lstIdentificadores.Clear();
+
                 #region Léxico
                 miConexion.Conectar();
                 //archivoTOken
@@ -119,7 +123,7 @@ namespace AnalizadorLexico
                     }
                 }
                 rtxtErrores.Text = Errores;
-                ActualizarTablaSimbolosIdentificadores(miAutomata.lstIdentificadores, miAutomata.lstConstantes);
+                ActualizarTablaSimbolosIdentificadores(Automata.lstIdentificadores, miAutomata.lstConstantes);
 
 
                 if(miAutomata.lstErrores.Count > 0) { btnGuardarArchivo.Enabled = false;
@@ -148,7 +152,7 @@ namespace AnalizadorLexico
                 if (!arrTokens[arrTokens.Length - 1].Equals("PR10")) { lstErroresSintacticosSemanticos.Add("Linea " + arrTokens.Length + ": Error de semántica - Se esperaba la instrucción FIN"); }
                 
                 //Verificar que todos los identificadores usados hayan sido declarados.
-                foreach (Identificador identificador in miAutomata.lstIdentificadores)
+                foreach (Identificador identificador in Automata.lstIdentificadores)
                 {
                     if (identificador.TipoDato == null || identificador.TipoDato == "")
                     {
@@ -168,11 +172,7 @@ namespace AnalizadorLexico
                     {
                         arrTokens[i] = arrTokens[i].Replace("TABU", "").Trim();
                     }
-                    if (arrTokens[i].Contains("ID"))
-                    {
-                        arrTokens[i] = ReemplazarIDVA(arrTokens[i]);
 
-                    }
                     if((arrTokens[i].Equals("PR10") || arrTokens[i].Equals("PR15")) && i != 0 && i != arrTokens.Length-1) { lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Instrucción inesperada");}
                 }
 
@@ -378,6 +378,69 @@ namespace AnalizadorLexico
                         }
                     }
                 }
+                foreach (string Asig in Automata.lstOPAG)
+                {
+                    string id = Asig.Substring(0, 4);
+                    int numID = int.Parse(id.Substring(2));
+                    string tipoDatoAsignacion = "";
+                    int numLinea = BuscarLineaAsignacion(Asig, arrTokens);
+                    foreach (Identificador identificador in Automata.lstIdentificadores)
+                    {
+                        if (identificador.Numero == numID && identificador.TipoDato != null)
+                        {
+                            tipoDatoAsignacion = identificador.TipoDato;
+                            break;
+                        }
+                    }
+                    string[] operandosAsignacion = Asig.Substring(Asig.IndexOf("OPAS")).Split(' ').ToArray();
+                    for (int j = 0; j < operandosAsignacion.Length; j++)
+                    {
+                        if (!operandosAsignacion[j].Contains("OPA"))
+                        {
+                            if (operandosAsignacion[j].Contains("ID"))
+                            {
+                                Identificador idenActual = BuscarIdentificador(int.Parse(operandosAsignacion[j].Substring(3)));
+                                if (idenActual.TipoDato != tipoDatoAsignacion)
+                                {
+                                    
+                                    lstErroresSintacticosSemanticos.Add("Linea " + numLinea  + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
+                                }
+                            }
+                            else
+                            {
+                                string tipoDatoConstante = "";
+                                switch (operandosAsignacion[j])
+                                {
+                                    case "CNEN":
+                                        tipoDatoConstante = "ENTERO";
+                                        break;
+                                    case "CNDE":
+                                        tipoDatoConstante = "REAL";
+                                        break;
+                                    case "CNEX":
+                                        tipoDatoConstante = "REAL";
+                                        break;
+                                    case "PR09":
+                                        tipoDatoConstante = "BOOL";
+                                        break;
+                                    case "PR24":
+                                        tipoDatoConstante = "BOOL";
+                                        break;
+                                    case "CADE":
+                                        tipoDatoConstante = "CADENA";
+                                        break;
+                                    case "CARA":
+                                        tipoDatoAsignacion = "CARACTER";
+                                        break;
+                                }
+                                if (tipoDatoConstante != tipoDatoAsignacion)
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + numLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 foreach (string error in lstErroresSintacticosSemanticos)
                 {
@@ -387,15 +450,8 @@ namespace AnalizadorLexico
                 txtErrores.Text = (miAutomata.lstErrores.Count + lstErroresSintacticosSemanticos.Count).ToString();
 
                 lstDerivaciones.Clear();
-                lstErroresSintacticosSemanticos.Clear();
+                lstErroresSintacticosSemanticos.Clear();                
                 #endregion
-
-
-
-
-
-
-
             }
             catch (Exception Ex)
             {
@@ -489,10 +545,16 @@ namespace AnalizadorLexico
 
         //Método para buscar la cadena actual en la parte derecha de la gramática, si se encuentra se devuelve la parte izquierda,
         //sino, se devuelve la misma cadena que se busco
-        string BuscarGramatica(string cadena, bool cadenaCompleta)
+        string BuscarGramatica(string cadenaOriginal, bool cadenaCompleta)
         {
+            string cadena = cadenaOriginal;
             string resultado = "";
             string cadenacon = "Data Source=DESKTOP-ANTONIO\\SQLEXPRESS;Initial Catalog=AUTOMATAS;Integrated Security=True";
+            if (cadena.Contains("ID"))
+            {
+                cadena = ReemplazarIDVA(cadena);
+
+            }
             using (SqlConnection cnn = new SqlConnection(cadenacon))
             {
                 cnn.Open();
@@ -512,11 +574,11 @@ namespace AnalizadorLexico
                 }
                 else if (!cadenaCompleta)
                 {
-                    SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S'", cnn);
+                    SqlCommand sqlCommand = new SqlCommand("SELECT count(*) from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S'  AND Simbolo !='OPAG'", cnn);
                     int coincidencias = int.Parse(sqlCommand.ExecuteScalar().ToString());
                     if (coincidencias > 0)
                     {
-                        sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S'", cnn);
+                        sqlCommand = new SqlCommand("SELECT Simbolo from Gramaticas where Gramatica ='" + cadena + "' AND Simbolo != 'S' AND Simbolo !='OPAG'", cnn);
                         resultado = sqlCommand.ExecuteScalar().ToString();
                     }
                     else
@@ -525,6 +587,10 @@ namespace AnalizadorLexico
                     }
                 }
 
+            }
+            if (resultado == "OPAG" && cadena != "OPAG")
+            {
+                Automata.lstOPAG.Add(cadenaOriginal);
             }
             return resultado;
         }
@@ -671,6 +737,23 @@ namespace AnalizadorLexico
             MessageBox.Show("Guardado correctamente");        
         }
 
-
+        Identificador BuscarIdentificador(int numIden)
+        {
+            Identificador miIden = Automata.lstIdentificadores.Where(iden => iden.Numero == numIden).FirstOrDefault();
+            return miIden;
+        }
+        int BuscarLineaAsignacion(string opag, string[] arrTokens)
+        {
+            int numLinea = 0;
+            for (int i = 0; i < arrTokens.Length; i++)
+            {
+                if(arrTokens[i].Equals(opag))
+                {
+                    numLinea = i+1;
+                    return numLinea;
+                }
+            }
+            return numLinea;
+        }
     }
 }
