@@ -19,6 +19,7 @@ namespace AnalizadorLexico
         EjecutorQuerys miConexion = new EjecutorQuerys();
         List<string> lstDerivaciones = new List<string>();
         List<string> lstErroresSintacticosSemanticos = new List<string>();
+        List<string> lsttipoDatos = new List<string>() { "CNEN","CNDE","CNEX","CADE","CARA","PR09","PR24"};
         
         public Form1()
         {
@@ -237,7 +238,7 @@ namespace AnalizadorLexico
                                     }
                                     else
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + z + ": Error de sintaxis - Error en el CASO");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Error en el CASO");
                                     }
                                 }
                                 if (arrTokens[z].Contains("CE08") && !arrTokens[i].Contains("CE08") && !arrTokens[i].Contains("PR12") && !arrTokens[z].Contains("PR19"))
@@ -290,23 +291,23 @@ namespace AnalizadorLexico
                                     }
                                     else
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Corchete no abierto");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de semántica - Corchete no abierto");
                                     }
                                     if (!sino.Contains("CE08"))
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Corchete abierto pero no cerrado");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de semántica - Corchete abierto pero no cerrado");
                                     }
                                     sino = BottomUp(sino,0,z);
                                 }
                             }
                             if (!arrTokens[i].Contains("CE08"))
                             {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de sintaxis - Corchete abierto pero no cerrado");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Corchete abierto pero no cerrado");
                             }
                         }
                         else
                         {
-                            lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de sintaxis - Corchete no abierto");
+                            lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Corchete no abierto");
                         }
                     }
                     if(!arrTokens[i].Contains("Error"))
@@ -378,6 +379,80 @@ namespace AnalizadorLexico
                         }
                     }
                 }
+                //Balanceo de corchetes
+                int balanceoCorchetes = 0;
+                for (int i = 0; i < arrTokens.Length; i++)
+                {
+                    if (arrTokens[i].Contains("CE07"))
+                    {
+                        balanceoCorchetes++;
+                    }
+                    if (arrTokens[i].Contains("CE08"))
+                    {
+                        balanceoCorchetes--;
+                    }
+                }
+
+                if (balanceoCorchetes != 0)
+                {
+                    if (balanceoCorchetes > 0)
+                    {
+                        for (int i = arrResultado.Length - 1; i >= 0; i--)
+                        {
+                            if (arrResultado[i].Contains("CE07") && !arrResultado[i].Contains("CE08"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
+                            }
+                        }
+                    }
+                    else if (balanceoCorchetes < 0)
+                    {
+                        for (int i = arrResultado.Length - 1; i >= 0; i--)
+                        {
+                            if (arrResultado[i].Contains("CE07") && !arrResultado[i].Contains("CE08"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
+                            }
+                        }
+                    }
+                }
+                //Balanceo de parentesis
+                int balanceoLlaves = 0;
+                for (int i = 0; i < arrTokens.Length; i++)
+                {
+                    if (arrTokens[i].Contains("CE05"))
+                    {
+                        balanceoLlaves++;
+                    }
+                    if (arrTokens[i].Contains("CE06"))
+                    {
+                        balanceoLlaves--;
+                    }
+                }
+
+                if (balanceoLlaves != 0)
+                {
+                    if (balanceoLlaves > 0)
+                    {
+                        for (int i = arrTokens.Length - 1; i >= 0; i--)
+                        {
+                            if (arrTokens[i].Contains("CE05") && !arrTokens[i].Contains("CE06"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
+                            }
+                        }
+                    }
+                    else if (balanceoLlaves < 0)
+                    {
+                        for (int i = arrTokens.Length - 1; i >= 0; i--)
+                        {
+                            if (arrTokens[i].Contains("CE05") && !arrTokens[i].Contains("CE06"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
+                            }
+                        }
+                    }
+                }
                 foreach (string Asig in Automata.lstOPAG)
                 {
                     string id = Asig.Substring(0, 4);
@@ -395,7 +470,7 @@ namespace AnalizadorLexico
                     string[] operandosAsignacion = Asig.Substring(Asig.IndexOf("OPAS")).Split(' ').ToArray();
                     for (int j = 0; j < operandosAsignacion.Length; j++)
                     {
-                        if (!operandosAsignacion[j].Contains("OPA"))
+                        if (!operandosAsignacion[j].Contains("OPA") && !operandosAsignacion[j].Equals("CE05") && !operandosAsignacion[j].Equals("CE06"))
                         {
                             if (operandosAsignacion[j].Contains("ID"))
                             {
@@ -408,34 +483,37 @@ namespace AnalizadorLexico
                             }
                             else
                             {
-                                string tipoDatoConstante = "";
-                                switch (operandosAsignacion[j])
+                                if (lsttipoDatos.Contains(operandosAsignacion[j]))
                                 {
-                                    case "CNEN":
-                                        tipoDatoConstante = "ENTERO";
-                                        break;
-                                    case "CNDE":
-                                        tipoDatoConstante = "REAL";
-                                        break;
-                                    case "CNEX":
-                                        tipoDatoConstante = "REAL";
-                                        break;
-                                    case "PR09":
-                                        tipoDatoConstante = "BOOL";
-                                        break;
-                                    case "PR24":
-                                        tipoDatoConstante = "BOOL";
-                                        break;
-                                    case "CADE":
-                                        tipoDatoConstante = "CADENA";
-                                        break;
-                                    case "CARA":
-                                        tipoDatoAsignacion = "CARACTER";
-                                        break;
-                                }
-                                if (tipoDatoConstante != tipoDatoAsignacion)
-                                {
-                                    lstErroresSintacticosSemanticos.Add("Linea " + numLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
+                                    string tipoDatoConstante = "";
+                                    switch (operandosAsignacion[j])
+                                    {
+                                        case "CNEN":
+                                            tipoDatoConstante = "ENTERO";
+                                            break;
+                                        case "CNDE":
+                                            tipoDatoConstante = "REAL";
+                                            break;
+                                        case "CNEX":
+                                            tipoDatoConstante = "REAL";
+                                            break;
+                                        case "PR09":
+                                            tipoDatoConstante = "BOOL";
+                                            break;
+                                        case "PR24":
+                                            tipoDatoConstante = "BOOL";
+                                            break;
+                                        case "CADE":
+                                            tipoDatoConstante = "CADENA";
+                                            break;
+                                        case "CARA":
+                                            tipoDatoAsignacion = "CARACTER";
+                                            break;
+                                    }
+                                    if (tipoDatoConstante != tipoDatoAsignacion)
+                                    {
+                                        lstErroresSintacticosSemanticos.Add("Linea " + numLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
+                                    }
                                 }
                             }
                         }
