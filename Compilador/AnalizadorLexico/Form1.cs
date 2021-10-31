@@ -33,7 +33,6 @@ namespace AnalizadorLexico
             {
                 Automata.lstOPAG.Clear();
                 Automata.lstIdentificadores.Clear();
-
                 #region Léxico
                 miConexion.Conectar();
                 //archivoTOken
@@ -389,7 +388,7 @@ namespace AnalizadorLexico
                     }
                     if (arrTokens[i].Contains("CE08"))
                     {
-                        balanceoCorchetes = balanceoCorchetes + Regex.Matches(arrTokens[i], "CE08").Count; ;
+                        balanceoCorchetes = balanceoCorchetes - Regex.Matches(arrTokens[i], "CE08").Count; ;
                     }
                 }
 
@@ -397,12 +396,12 @@ namespace AnalizadorLexico
                 {
                     if (balanceoCorchetes > 0)
                     {
-                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE07") +1) +": Error de semántica - Parentesis abierto pero no cerrado");
+                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE07") +1) +": Error de semántica - Corchete abierto pero no cerrado");
                     }
 
                     else if (balanceoCorchetes < 0)
                     {
-                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE08") + 1) + ": Error de semántica - Parentesis no abierto");
+                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE08") + 1) + ": Error de semántica - Corchete no abierto");
                     }
                 }
                 //Balanceo de parentesis
@@ -442,8 +441,14 @@ namespace AnalizadorLexico
                         }
                     }
                 }
+                foreach (string opag in lstDerivaciones)
+                {
+
+                }
                 foreach (string Asig in Automata.lstOPAG)
                 {
+
+                    int test = lstDerivaciones.Count;
                     string id = Asig.Substring(0, 4);
                     int numID = int.Parse(id.Substring(2));
                     string tipoDatoAsignacion = "";
@@ -531,6 +536,7 @@ namespace AnalizadorLexico
         }
         string BottomUp(string cadena, int posicionInicial, int numLinea)
         {
+            string cadenaOriginal = cadena;
             string resultado = "";
             int LongitudCadena = cadena.Trim().Split(' ').ToArray().Length;
             string cadenaActual = "";
@@ -587,12 +593,17 @@ namespace AnalizadorLexico
                 {
                     return resultado;
                 }
+
                 else
                 {
                     //Si el resultado regresado del metodo BuscarGramatica no es S, en el caso de que haya habido una reducción aquí se hace el reemplazo de la parte que se redujo
                     //y se vuelve a aplicar el método bottom up
                     if (resultado != cadenaActual)
                     {
+                        if (resultado == "OPAG")
+                        {
+                            Automata.lstOPAG.Add(cadenaOriginal);
+                        }
                         cadena = ReemplazarCadena(cadena, cadenaActual, resultado);
                         TokensCadena = cadena.Trim().Split(' ').ToArray();
                         lstDerivaciones.Add(cadena);
@@ -654,10 +665,6 @@ namespace AnalizadorLexico
                     }
                 }
 
-            }
-            if (resultado == "OPAG" && cadena != "OPAG")
-            {
-                Automata.lstOPAG.Add(cadenaOriginal);
             }
             return resultado;
         }

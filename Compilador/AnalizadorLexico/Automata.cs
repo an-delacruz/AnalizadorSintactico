@@ -132,7 +132,7 @@ namespace AnalizadorLexico
                         }
                         miToken.CAT = "ID" + miIden.Numero.ToString().PadLeft(2,'0');
                     }
-                    if(miToken.CAT == "CADE" || miToken.CAT == "CNEN" || miToken.CAT == "CNEX" || miToken.CAT == "CNDE" || miToken.CAT == "PR09" || miToken.CAT == "PR24")
+                    if(miToken.CAT == "CADE" || miToken.CAT == "CNEN" || miToken.CAT == "CNEX" || miToken.CAT == "CNDE" || miToken.CAT == "PR09" || miToken.CAT == "PR24" || miToken.CAT == "CARA")
                     {
                         Constante miConstante = new Constante();
                         miConstante.Nombre = cadenas[numCadena - 2];
@@ -158,10 +158,11 @@ namespace AnalizadorLexico
                                 miConstante.TipoDato = "BOOL";
                                 break;
                             case "CADE":
-                                if(miConstante.Nombre.Length == 3) { miConstante.TipoDato = "CARACTER"; }
-                                else { miConstante.TipoDato = "CADENA"; }
+                                miConstante.TipoDato = "CADENA";
                                 break;
-                                   
+                            case "CARA":
+                                miConstante.TipoDato = "CARACTER";
+                                break;
                             default:
                                 break;
                         }
