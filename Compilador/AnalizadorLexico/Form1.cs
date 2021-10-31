@@ -348,11 +348,11 @@ namespace AnalizadorLexico
                 {
                     if (arrTokens[i].Contains("CE03"))
                     {
-                        balanceParentesis++;
+                        balanceParentesis = balanceParentesis + Regex.Matches(arrTokens[i], "CE03").Count;
                     }
                     if (arrTokens[i].Contains("CE04"))
                     {
-                        balanceParentesis--;
+                        balanceParentesis = balanceParentesis - Regex.Matches(arrTokens[i], "CE04").Count; 
                     }
                 }
 
@@ -362,7 +362,7 @@ namespace AnalizadorLexico
                     {
                         for (int i = arrTokens.Length-1; i >= 0; i--)
                         {
-                            if (arrTokens[i].Contains("CE03") && !arrTokens[i].Contains("CE04"))
+                            if (arrTokens[i].Contains("CE03") && (Regex.Matches(arrTokens[i], "CE03").Count > Regex.Matches(arrTokens[i], "CE04").Count))
                             {
                                 lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
                             }
@@ -372,7 +372,7 @@ namespace AnalizadorLexico
                     {
                         for (int i = arrTokens.Length-1; i >= 0; i--)
                         {
-                            if (arrTokens[i].Contains("CE04") && !arrTokens[i].Contains("CE03"))
+                            if (arrTokens[i].Contains("CE04") && (Regex.Matches(arrTokens[i], "CE04").Count > Regex.Matches(arrTokens[i], "CE03").Count))
                             {
                                 lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
                             }
@@ -385,11 +385,11 @@ namespace AnalizadorLexico
                 {
                     if (arrTokens[i].Contains("CE07"))
                     {
-                        balanceoCorchetes++;
+                        balanceoCorchetes = balanceoCorchetes + Regex.Matches(arrTokens[i], "CE07").Count; ;
                     }
                     if (arrTokens[i].Contains("CE08"))
                     {
-                        balanceoCorchetes--;
+                        balanceoCorchetes = balanceoCorchetes + Regex.Matches(arrTokens[i], "CE08").Count; ;
                     }
                 }
 
@@ -397,23 +397,12 @@ namespace AnalizadorLexico
                 {
                     if (balanceoCorchetes > 0)
                     {
-                        for (int i = arrResultado.Length - 1; i >= 0; i--)
-                        {
-                            if (arrResultado[i].Contains("CE07") && !arrResultado[i].Contains("CE08"))
-                            {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
-                            }
-                        }
+                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE07") +1) +": Error de semántica - Parentesis abierto pero no cerrado");
                     }
+
                     else if (balanceoCorchetes < 0)
                     {
-                        for (int i = arrResultado.Length - 1; i >= 0; i--)
-                        {
-                            if (arrResultado[i].Contains("CE07") && !arrResultado[i].Contains("CE08"))
-                            {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
-                            }
-                        }
+                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE08") + 1) + ": Error de semántica - Parentesis no abierto");
                     }
                 }
                 //Balanceo de parentesis
@@ -422,11 +411,11 @@ namespace AnalizadorLexico
                 {
                     if (arrTokens[i].Contains("CE05"))
                     {
-                        balanceoLlaves++;
+                        balanceoLlaves = balanceoLlaves + Regex.Matches(arrTokens[i],"CE05").Count;
                     }
                     if (arrTokens[i].Contains("CE06"))
                     {
-                        balanceoLlaves--;
+                        balanceoLlaves = balanceoLlaves - Regex.Matches(arrTokens[i], "CE06").Count;
                     }
                 }
 
@@ -436,9 +425,9 @@ namespace AnalizadorLexico
                     {
                         for (int i = arrTokens.Length - 1; i >= 0; i--)
                         {
-                            if (arrTokens[i].Contains("CE05") && !arrTokens[i].Contains("CE06"))
+                            if (arrTokens[i].Contains("CE05") && (Regex.Matches(arrTokens[i], "CE05").Count > Regex.Matches(arrTokens[i], "CE06").Count))
                             {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis abierto pero no cerrado");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Llave abierta pero no cerrada");
                             }
                         }
                     }
@@ -446,9 +435,9 @@ namespace AnalizadorLexico
                     {
                         for (int i = arrTokens.Length - 1; i >= 0; i--)
                         {
-                            if (arrTokens[i].Contains("CE05") && !arrTokens[i].Contains("CE06"))
+                            if (arrTokens[i].Contains("CE06") && (Regex.Matches(arrTokens[i], "CE06").Count > Regex.Matches(arrTokens[i], "CE05").Count))
                             {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Parentesis no abierto");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Llave no abierta");
                             }
                         }
                     }
