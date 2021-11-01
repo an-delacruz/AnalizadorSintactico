@@ -15,7 +15,9 @@ namespace AnalizadorLexico
         public static List<Identificador> lstIdentificadores = new List<Identificador>();
         public List<Constante> lstConstantes = new List<Constante>();
         List<string> lsttipoDatos = new List<string>(new string[] { "ENTERO", "CADENA", "CARACTER", "BOOL", "REAL" });
-        public static List<string> lstOPAG = new List<string>();
+        public static List<Asignacion> lstOPAG = new List<Asignacion>();
+        public static List<Condicion> lstCondiciones = new List<Condicion>();
+
 
         private Estado _EstadoActual;
         public Estado EstadoActual

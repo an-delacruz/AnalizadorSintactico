@@ -49,8 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Asignacion.cs" />
     <Compile Include="Automata.cs" />
     <Compile Include="Cadena.cs" />
+    <Compile Include="Condicion.cs" />
     <Compile Include="Constante.cs" />
     <Compile Include="EjecutorQuerys.cs" />
     <Compile Include="Error.cs" />

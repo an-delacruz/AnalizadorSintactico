@@ -33,6 +33,7 @@ namespace AnalizadorLexico
             {
                 Automata.lstOPAG.Clear();
                 Automata.lstIdentificadores.Clear();
+                Automata.lstCondiciones.Clear();
                 #region Léxico
                 miConexion.Conectar();
                 //archivoTOken
@@ -341,6 +342,7 @@ namespace AnalizadorLexico
                 }
                 rtxtDerivaciones.Text = derivaciones;
 
+                #region Balanceo parentesiscorchetesllaves
                 //Balanceo de parentesis
                 int balanceParentesis = 0;
                 for (int i = 0; i < arrTokens.Length; i++)
@@ -441,78 +443,176 @@ namespace AnalizadorLexico
                         }
                     }
                 }
-                foreach (string opag in lstDerivaciones)
-                {
+                #endregion
 
-                }
-                foreach (string Asig in Automata.lstOPAG)
+                #region Tipos de datos asignaciones
+                foreach (Asignacion Asig in Automata.lstOPAG)
                 {
-
-                    int test = lstDerivaciones.Count;
-                    string id = Asig.Substring(0, 4);
+                    string id = Asig.Cadena.Substring(0, 4);
                     int numID = int.Parse(id.Substring(2));
-                    string tipoDatoAsignacion = "";
-                    int numLinea = BuscarLineaAsignacion(Asig, arrTokens);
+                    string[] tipoDatoAsignacion = new string[2];
                     foreach (Identificador identificador in Automata.lstIdentificadores)
                     {
                         if (identificador.Numero == numID && identificador.TipoDato != null)
                         {
-                            tipoDatoAsignacion = identificador.TipoDato;
+                            tipoDatoAsignacion[0] = identificador.TipoDato;
+                            if (identificador.TipoDato == "REAL")
+                            {
+                                tipoDatoAsignacion[1] = "ENTERO";
+                            }
                             break;
                         }
                     }
-                    string[] operandosAsignacion = Asig.Substring(Asig.IndexOf("OPAS")).Split(' ').ToArray();
-                    for (int j = 0; j < operandosAsignacion.Length; j++)
+                    string[] operandosAsignacion = Asig.Cadena.Substring(Asig.Cadena.IndexOf("OPAS")).Split(' ').ToArray();
+                    if (tipoDatoAsignacion[0].Equals("BOOL") || tipoDatoAsignacion[0].Equals("CARACTER") && operandosAsignacion.Length > 1)
                     {
-                        if (!operandosAsignacion[j].Contains("OPA") && !operandosAsignacion[j].Equals("CE05") && !operandosAsignacion[j].Equals("CE06"))
+                        lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Asignación invalida");
+                    }
+                    else if(tipoDatoAsignacion[0].Equals("CADENA") && (operandosAsignacion.Contains("OPA2") || operandosAsignacion.Contains("OPA3") || operandosAsignacion.Contains("OPA4")))
+                    {
+                        lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Asignación invalida");
+                    }
+                    else
+                    {
+                        for (int j = 0; j < operandosAsignacion.Length; j++)
                         {
-                            if (operandosAsignacion[j].Contains("ID"))
+                            if (!operandosAsignacion[j].Contains("OPA") && !operandosAsignacion[j].Equals("CE05") && !operandosAsignacion[j].Equals("CE06"))
                             {
-                                Identificador idenActual = BuscarIdentificador(int.Parse(operandosAsignacion[j].Substring(3)));
-                                if (idenActual.TipoDato != tipoDatoAsignacion)
+                                if (operandosAsignacion[j].Contains("ID"))
                                 {
-                                    
-                                    lstErroresSintacticosSemanticos.Add("Linea " + numLinea  + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
-                                }
-                            }
-                            else
-                            {
-                                if (lsttipoDatos.Contains(operandosAsignacion[j]))
-                                {
-                                    string tipoDatoConstante = "";
-                                    switch (operandosAsignacion[j])
+                                    Identificador idenActual = BuscarIdentificador(int.Parse(operandosAsignacion[j].Substring(3)));
+                                    if (!tipoDatoAsignacion.Contains(idenActual.TipoDato))
                                     {
-                                        case "CNEN":
-                                            tipoDatoConstante = "ENTERO";
-                                            break;
-                                        case "CNDE":
-                                            tipoDatoConstante = "REAL";
-                                            break;
-                                        case "CNEX":
-                                            tipoDatoConstante = "REAL";
-                                            break;
-                                        case "PR09":
-                                            tipoDatoConstante = "BOOL";
-                                            break;
-                                        case "PR24":
-                                            tipoDatoConstante = "BOOL";
-                                            break;
-                                        case "CADE":
-                                            tipoDatoConstante = "CADENA";
-                                            break;
-                                        case "CARA":
-                                            tipoDatoAsignacion = "CARACTER";
-                                            break;
+
+                                        lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion[0]);
                                     }
-                                    if (tipoDatoConstante != tipoDatoAsignacion)
+                                }
+                                else
+                                {
+                                    if (lsttipoDatos.Contains(operandosAsignacion[j]))
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + numLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion);
+                                        string tipoDatoConstante = "";
+                                        switch (operandosAsignacion[j])
+                                        {
+                                            case "CNEN":
+                                                tipoDatoConstante = "ENTERO";
+                                                break;
+                                            case "CNDE":
+                                                tipoDatoConstante = "REAL";
+                                                break;
+                                            case "CNEX":
+                                                tipoDatoConstante = "REAL";
+                                                break;
+                                            case "PR09":
+                                                tipoDatoConstante = "BOOL";
+                                                break;
+                                            case "PR24":
+                                                tipoDatoConstante = "BOOL";
+                                                break;
+                                            case "CADE":
+                                                tipoDatoConstante = "CADENA";
+                                                break;
+                                            case "CARA":
+                                                tipoDatoConstante = "CARACTER";
+                                                break;
+                                        }
+                                        if (!tipoDatoAsignacion.Contains(tipoDatoConstante))
+                                        {
+                                            lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Se esperaba un tipo de dato " + tipoDatoAsignacion[0]);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+                #endregion
+
+                #region Tipos de datos condiciones
+                foreach (Condicion cond in Automata.lstCondiciones)
+                {
+                    if (cond.Cadena.Contains("PR05"))
+                    {
+                        //Validación de asignación en DESDE
+                        string[] desde = cond.Cadena.Substring(cond.Cadena.IndexOf("PR07") + 4, cond.Cadena.IndexOf("PR19") - cond.Cadena.IndexOf("PR07") - 4).Trim().Split(' ');
+                        if (desde[0].Contains("ID"))
+                        {
+                            int numID = int.Parse(desde[0].Substring(2));
+                            Identificador miIden = BuscarIdentificador(numID);
+                            if (miIden.TipoDato != "ENTERO")
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un identificador ENTERO");
+                            }
+                        }
+                        if(desde[2].Contains("ID"))
+                        {
+                            int numID = int.Parse(desde[0].Substring(2));
+                            Identificador miIden = BuscarIdentificador(numID);
+                            if (miIden.TipoDato != "ENTERO")
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
+                            }
+                        }
+                        else if(desde[2] != "CNEN")
+                        {
+                            lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
+                        }
+                        //Validación de los tipos de datos en la condición
+                        string[] mientras = cond.Cadena.Substring(cond.Cadena.IndexOf("PR19") + 4, cond.Cadena.IndexOf("PR14") - cond.Cadena.IndexOf("PR19") - 4).Trim().Split(' ');
+                        for (int i = 0; i < mientras.Length; i++)
+                        {
+                            if (mientras[i].Contains("ID"))
+                            {
+                                int numID = int.Parse(mientras[i].Substring(2));
+                                Identificador miIden = BuscarIdentificador(numID);
+                                if (miIden.TipoDato != "ENTERO" && miIden.TipoDato != "REAL")
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Idenficador invalido en la condición");
+                                }
+                            }
+                            if (mientras[i].Equals("CADENA") || mientras[i].Equals("BOOL") || mientras[i].Equals("CARACTER"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Tipo de dato invalido en la condición");
+                            }
+                        }
+                        //Validación de los tipos de datos en el incremento
+                        string[] incremento = cond.Cadena.Substring(cond.Cadena.IndexOf("PR14") + 4, cond.Cadena.IndexOf("CE04") - cond.Cadena.IndexOf("PR14") - 4).Trim().Split(' ');
+                        if (incremento[0].Contains("ID"))
+                        {
+                            int numID = int.Parse(incremento[0].Substring(2));
+                            Identificador miIden = BuscarIdentificador(numID);
+                            if (miIden.TipoDato != "ENTERO")
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Identificador invalido en el incremento");
+                            }
+                        }
+                        if (incremento[2] != "CNEN")
+                        {
+                            lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
+                        }
+                    }
+                    else if(cond.Cadena.Contains("PR19") || cond.Cadena.Contains("PR21") && !cond.Cadena.Contains("PR05"))
+                    {
+                        string[] condic = cond.Cadena.Substring(cond.Cadena.IndexOf("CE03") + 4, cond.Cadena.IndexOf("CE04") - cond.Cadena.IndexOf("CE03") - 4).Trim().Split(' ');
+                        for (int i = 0; i < condic.Length; i++)
+                        {
+                            if (condic[i].Contains("ID"))
+                            {
+                                int numID = int.Parse(condic[i].Substring(2));
+                                Identificador miIden = BuscarIdentificador(numID);
+                                if (miIden.TipoDato != "ENTERO" && miIden.TipoDato != "REAL")
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Idenficador invalido en la condición");
+                                }
+                            }
+                            if (condic[i].Equals("CADENA") || condic[i].Equals("BOOL") || condic[i].Equals("CARACTER"))
+                            {
+                                lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Tipo de dato invalido en la condición");
+                            }
+                        }
+                    }
+                }
+                #endregion
 
                 foreach (string error in lstErroresSintacticosSemanticos)
                 {
@@ -538,12 +638,12 @@ namespace AnalizadorLexico
         {
             string cadenaOriginal = cadena;
             string resultado = "";
-            int LongitudCadena = cadena.Trim().Split(' ').ToArray().Length;
+            int LongitudCadena = cadena.Trim().Split(' ').Length;
             string cadenaActual = "";
             string cadenaAuxiliar = "";
             bool cadenaCompleta = true;
             //Arreglo con los tokens que contiene la cadena que se va a reducir.
-            string[] TokensCadena = cadena.Trim().Split(' ').ToArray();
+            string[] TokensCadena = cadena.Trim().Split(' ');
             int c = 0;
             if (cadena == "")
             {
@@ -602,7 +702,17 @@ namespace AnalizadorLexico
                     {
                         if (resultado == "OPAG")
                         {
-                            Automata.lstOPAG.Add(cadenaOriginal);
+                            Asignacion miAsig = new Asignacion();
+                            miAsig.Cadena = cadenaOriginal;
+                            miAsig.NumLinea = numLinea;
+                            Automata.lstOPAG.Add(miAsig);
+                        }
+                        if (resultado == "COND")
+                        {
+                            Condicion miCond = new Condicion();
+                            miCond.Cadena = cadenaOriginal;
+                            miCond.NumLinea = numLinea;
+                            Automata.lstCondiciones.Add(miCond);
                         }
                         cadena = ReemplazarCadena(cadena, cadenaActual, resultado);
                         TokensCadena = cadena.Trim().Split(' ').ToArray();
@@ -815,19 +925,6 @@ namespace AnalizadorLexico
         {
             Identificador miIden = Automata.lstIdentificadores.Where(iden => iden.Numero == numIden).FirstOrDefault();
             return miIden;
-        }
-        int BuscarLineaAsignacion(string opag, string[] arrTokens)
-        {
-            int numLinea = 0;
-            for (int i = 0; i < arrTokens.Length; i++)
-            {
-                if(arrTokens[i].Equals(opag))
-                {
-                    numLinea = i+1;
-                    return numLinea;
-                }
-            }
-            return numLinea;
         }
     }
 }
