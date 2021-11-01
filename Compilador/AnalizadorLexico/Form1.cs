@@ -204,17 +204,21 @@ namespace AnalizadorLexico
                                     if (arrTokens[z].Contains("PR06"))
                                     {
                                         listacase = listacase + " " + arrTokens[z];
-                                       
+
                                         listacase = listacase.Trim();
                                     }
                                     for (int y = z; y < arrTokens.Length; y++)
                                     {
                                         if (arrTokens[y] == "PR11" && arrTokens[z].Contains("PR04"))
                                         {
-                                            caso = arrTokens[z] + " " + arrTokens[y];
-                                            arrTokens[y] = "";
-                                            arrTokens[z] = "";
-                                            break;
+                                            int defaultIndex = Array.FindIndex(arrTokens, x => x.Contains("PR06"));
+                                            if (defaultIndex > y || defaultIndex == -1)
+                                            {
+                                                caso = arrTokens[z] + " " + arrTokens[y];
+                                                arrTokens[y] = "";
+                                                arrTokens[z] = "";
+                                                break;
+                                            }
                                         }
                                         if (arrTokens[y] == "PR11" && arrTokens[z].Contains("PR06"))
                                         {
@@ -224,22 +228,40 @@ namespace AnalizadorLexico
                                             break;
                                         }
                                     }
-                                    caso = BottomUp(caso,0,z);
-                                    if (caso == "LISTACASE" || listacase.Contains("PR06"))
+                                    string rescaso = "";
+                                    if (caso != "")
                                     {
-                                        if (caso == "LISTACASE")
-                                        {
-                                            ultimocaseevaluado = caso;
-                                        }
-                                        else
-                                        {
-                                            continue;
-                                        }
+                                        rescaso = BottomUp(caso, 0, z);
+                                    }
+                                    if (rescaso == "LISTACASE" || listacase.Contains("PR06"))
+                                    {
+                                        ultimocaseevaluado = rescaso;
                                     }
                                     else
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de sintaxis - Error en el CASO");
+                                        if (rescaso != "LISTACASE" && !listacase.Contains("PR06"))
+                                        {
+                                            if (!caso.Contains("PR04"))
+                                            {
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba la instrucción CASE");
+                                            }
+                                            else if (!caso.Contains("CE16"))
+                                            {
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba :");
+                                            }
+                                            else if (!caso.Contains("PR11"))
+                                            {
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba la instrucción FINCASO");
+                                            }
+                                            else
+                                            {
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Error en el CASO");
+                                            }
+
+                                        }
                                     }
+
+
                                 }
                                 if (arrTokens[z].Contains("CE08") && !arrTokens[i].Contains("CE08") && !arrTokens[i].Contains("PR12") && !arrTokens[z].Contains("PR19"))
                                 {
