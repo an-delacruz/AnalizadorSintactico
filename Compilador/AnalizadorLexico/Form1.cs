@@ -34,6 +34,7 @@ namespace AnalizadorLexico
                 Automata.lstOPAG.Clear();
                 Automata.lstIdentificadores.Clear();
                 Automata.lstCondiciones.Clear();
+                Automata.lstSwitches.Clear();
                 #region Léxico
                 miConexion.Conectar();
                 //archivoTOken
@@ -184,6 +185,12 @@ namespace AnalizadorLexico
                     if (arrTokens[i].Contains("PR21") || arrTokens[i].Contains("PR23") || arrTokens[i].Contains("PR05")
                         || arrTokens[i].Contains("PR19") || arrTokens[i].Contains("PR12"))
                     {
+                        Switch miSwitch = new Switch();
+                        if (arrTokens[i].Contains("PR23"))
+                        {
+                            miSwitch.Cadena = arrTokens[i];
+                            miSwitch.NumLinea = i+1;
+                        }
                         if (arrTokens[i + 1].Contains("CE07"))
                         //if (lstCorchetes.Contains("ABIERTO"))
                         {
@@ -199,6 +206,7 @@ namespace AnalizadorLexico
                                 //Acomodo de los casos, fincasos y default
                                 if (arrTokens[i].Contains("PR23") && (arrTokens[z].Contains("PR04") || arrTokens[z].Contains("PR06")) && !arrTokens[i].Contains("CE08"))
                                 {
+
                                     listacase = ultimocaseevaluado;
                                     string caso = "";
                                     if (arrTokens[z].Contains("PR06"))
@@ -231,10 +239,17 @@ namespace AnalizadorLexico
                                     string rescaso = "";
                                     if (caso != "")
                                     {
-                                        rescaso = BottomUp(caso, 0, z);
+                                        rescaso = BottomUp(caso, 0, z+1);
                                     }
                                     if (rescaso == "LISTACASE" || listacase.Contains("PR06"))
                                     {
+                                        if(caso != "")
+                                        {
+                                            Caso miCaso = new Caso();
+                                            miCaso.Cadena = caso;
+                                            miCaso.NumLinea = z+1;
+                                            miSwitch.lstCasos.Add(miCaso);
+                                        }
                                         ultimocaseevaluado = rescaso;
                                     }
                                     else
@@ -270,6 +285,11 @@ namespace AnalizadorLexico
                                     arrTokens[i] = arrTokens[i].Trim();
                                     arrTokens[i] = arrTokens[i] + " " + arrTokens[z];
                                     arrTokens[z] = "";
+                                    if (arrTokens[i].Contains("PR23"))
+                                    {
+                                        miSwitch.Cadena = arrTokens[i];
+                                        Automata.lstSwitches.Add(miSwitch);
+                                    }
                                     lstCorchetes.Add("PAR");
                                     if (!arrTokens[i].Contains("PR21"))
                                     {
@@ -350,12 +370,7 @@ namespace AnalizadorLexico
                         lstDerivaciones.Add(arrResultado[i]);
                     }
                 }
-                //string resultado = "";
-                //for (int i = 0; i < arrResultado.Length; i++)
-                //{
-                //    resultado = resultado + arrResultado[i] + "\n";
-                //}
-                //rtxtResultado.Text = resultado;
+
 
                 string derivaciones = "";
                 foreach (string derivacion in lstDerivaciones)
@@ -636,6 +651,86 @@ namespace AnalizadorLexico
                 }
                 #endregion
 
+                #region TIpo de datos switch
+                foreach (Switch @switch in Automata.lstSwitches)
+                {
+                    string condicSwitch = @switch.Cadena.Substring(@switch.Cadena.IndexOf("CE03") + 4, @switch.Cadena.IndexOf("CE04") - @switch.Cadena.IndexOf("CE03") - 4).Trim();
+                    string tipoDatoSwitch = "";
+                    if (condicSwitch.Contains("ID"))
+                    {
+                        int numID = int.Parse(condicSwitch.Substring(2));
+                        Identificador miIden = BuscarIdentificador(numID);
+                        tipoDatoSwitch = miIden.TipoDato;
+                    }
+                    foreach (Caso caso in @switch.lstCasos)
+                    {
+                        string[] condicCaso = caso.Cadena.Substring(caso.Cadena.IndexOf("PR04") + 4, caso.Cadena.IndexOf("CE16") - caso.Cadena.IndexOf("PR04") - 4).Trim().Split(' ');
+                        if (condicCaso.Length > 1)
+                        {
+                            for (int i = 0; i < condicCaso.Length; i++)
+                            {
+                                if (condicCaso[i].Contains("ID"))
+                                {
+                                    int numID = int.Parse(condicCaso[i].Substring(2));
+                                    Identificador miIden = BuscarIdentificador(numID);
+                                    if (miIden.TipoDato != "ENTERO" && miIden.TipoDato != "REAL" && (tipoDatoSwitch == "ENTERO" || tipoDatoSwitch == "REAL"))
+                                    {
+                                        lstErroresSintacticosSemanticos.Add("Linea " + caso.NumLinea + ": Error de semántica - Idenficador invalido en la condición");
+                                    }
+                                }
+                                if (condicCaso[i].Equals("CADENA") || condicCaso[i].Equals("BOOL") || condicCaso[i].Equals("CARACTER") && (tipoDatoSwitch == "ENTERO" || tipoDatoSwitch == "REAL"))
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + caso.NumLinea + ": Error de semántica - Tipo de dato invalido en la condición");
+                                }
+                            }
+                        }
+                        else if(condicCaso.Length == 1)
+                        {
+                            if (condicCaso[0].Contains("ID"))
+                            {
+                                int numID = int.Parse(condicCaso[0].Substring(2));
+                                Identificador miIden = BuscarIdentificador(numID);
+                                if (miIden.TipoDato != tipoDatoSwitch)
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + caso.NumLinea + ": Error de semántica - Tipo de dato invalido");
+                                }
+                            }
+                            else
+                            {
+                                string tipoDatoConstante = "";
+                                switch (condicCaso[0])
+                                {
+                                    case "CNEN":
+                                        tipoDatoConstante = "ENTERO";
+                                        break;
+                                    case "CNDE":
+                                        tipoDatoConstante = "REAL";
+                                        break;
+                                    case "CNEX":
+                                        tipoDatoConstante = "REAL";
+                                        break;
+                                    case "PR09":
+                                        tipoDatoConstante = "BOOL";
+                                        break;
+                                    case "PR24":
+                                        tipoDatoConstante = "BOOL";
+                                        break;
+                                    case "CADE":
+                                        tipoDatoConstante = "CADENA";
+                                        break;
+                                    case "CARA":
+                                        tipoDatoConstante = "CARACTER";
+                                        break;
+                                }
+                                if (tipoDatoConstante != tipoDatoSwitch)
+                                {
+                                    lstErroresSintacticosSemanticos.Add("Linea " + caso.NumLinea + ": Error de semántica - Tipo de dato invalido");
+                                }
+                            }
+                        }
+                    }
+                }
+                #endregion
                 foreach (string error in lstErroresSintacticosSemanticos)
                 {
                     Errores = Errores + error + "\n";
