@@ -258,19 +258,19 @@ namespace AnalizadorLexico
                                         {
                                             if (!caso.Contains("PR04"))
                                             {
-                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba la instrucción CASE");
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Error en el CASO");
                                             }
                                             else if (!caso.Contains("CE16"))
                                             {
-                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba :");
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Error en el CASO");
                                             }
                                             else if (!caso.Contains("PR11"))
                                             {
-                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Se esperaba la instrucción FINCASO");
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Error en el CASO");
                                             }
                                             else
                                             {
-                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de sintaxis - Error en el CASO");
+                                                lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Error en el CASO");
                                             }
 
                                         }
