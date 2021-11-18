@@ -1110,11 +1110,14 @@ namespace AnalizadorLexico
                 if(arrCodigo[i].Contains("IMPRIMIR"))
                 {
                     string instruccion = arrCodigo[i];
-
                     lineaEnsamblador = "mov dx, OFFSET " + ReemplazarCadena(arrCodigo[i],"IMPRIMIR;","").Replace(";","") + "\n";
                     lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
                     continue;
+                }
+                if(arrCodigo[i].Contains("SI"))
+                {
+
                 }
 
             }
