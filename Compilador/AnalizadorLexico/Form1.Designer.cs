@@ -50,10 +50,13 @@ namespace AnalizadorLexico
             this.label4 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.btnGuardarTabla = new System.Windows.Forms.Button();
-            this.lineNumbers_For_RichTextBox2 = new LineNumbers.LineNumbers_For_RichTextBox();
-            this.lineNumbers_For_RichTextBox1 = new LineNumbers.LineNumbers_For_RichTextBox();
             this.rtxtDerivaciones = new System.Windows.Forms.RichTextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.rtxtEnsamblador = new System.Windows.Forms.RichTextBox();
+            this.btnGenerarEnsamblador = new System.Windows.Forms.Button();
+            this.btnGuardarEnsamblador = new System.Windows.Forms.Button();
+            this.lineNumbers_For_RichTextBox2 = new LineNumbers.LineNumbers_For_RichTextBox();
+            this.lineNumbers_For_RichTextBox1 = new LineNumbers.LineNumbers_For_RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSimbolos)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTSIdentificador)).BeginInit();
             this.SuspendLayout();
@@ -82,7 +85,7 @@ namespace AnalizadorLexico
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Modern No. 20", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(1394, 76);
+            this.label3.Location = new System.Drawing.Point(1422, 76);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(146, 29);
             this.label3.TabIndex = 5;
@@ -94,7 +97,7 @@ namespace AnalizadorLexico
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1585, 50);
+            this.panel1.Size = new System.Drawing.Size(1681, 50);
             this.panel1.TabIndex = 6;
             // 
             // btnCargarPrograma
@@ -157,9 +160,10 @@ namespace AnalizadorLexico
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1498, 472);
+            this.button1.Font = new System.Drawing.Font("Century", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.Location = new System.Drawing.Point(1532, 792);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.Size = new System.Drawing.Size(134, 39);
             this.button1.TabIndex = 12;
             this.button1.Text = "Salir";
             this.button1.UseVisualStyleBackColor = true;
@@ -185,7 +189,7 @@ namespace AnalizadorLexico
             this.dgvSimbolos.Location = new System.Drawing.Point(12, 522);
             this.dgvSimbolos.Name = "dgvSimbolos";
             this.dgvSimbolos.RowHeadersWidth = 51;
-            this.dgvSimbolos.Size = new System.Drawing.Size(787, 311);
+            this.dgvSimbolos.Size = new System.Drawing.Size(597, 311);
             this.dgvSimbolos.TabIndex = 15;
             // 
             // rtxtProgramaFuente
@@ -216,14 +220,14 @@ namespace AnalizadorLexico
             // 
             this.rtxtErrores.Location = new System.Drawing.Point(1307, 108);
             this.rtxtErrores.Name = "rtxtErrores";
-            this.rtxtErrores.Size = new System.Drawing.Size(266, 319);
+            this.rtxtErrores.Size = new System.Drawing.Size(362, 319);
             this.rtxtErrores.TabIndex = 21;
             this.rtxtErrores.Text = "";
             // 
             // lblErrores
             // 
             this.lblErrores.AutoSize = true;
-            this.lblErrores.Location = new System.Drawing.Point(1484, 430);
+            this.lblErrores.Location = new System.Drawing.Point(1580, 430);
             this.lblErrores.Name = "lblErrores";
             this.lblErrores.Size = new System.Drawing.Size(84, 13);
             this.lblErrores.TabIndex = 22;
@@ -231,7 +235,7 @@ namespace AnalizadorLexico
             // 
             // txtErrores
             // 
-            this.txtErrores.Location = new System.Drawing.Point(1521, 445);
+            this.txtErrores.Location = new System.Drawing.Point(1617, 445);
             this.txtErrores.Name = "txtErrores";
             this.txtErrores.ReadOnly = true;
             this.txtErrores.Size = new System.Drawing.Size(47, 20);
@@ -240,17 +244,17 @@ namespace AnalizadorLexico
             // dgvTSIdentificador
             // 
             this.dgvTSIdentificador.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvTSIdentificador.Location = new System.Drawing.Point(805, 521);
+            this.dgvTSIdentificador.Location = new System.Drawing.Point(615, 521);
             this.dgvTSIdentificador.Name = "dgvTSIdentificador";
             this.dgvTSIdentificador.RowHeadersWidth = 51;
-            this.dgvTSIdentificador.Size = new System.Drawing.Size(624, 265);
+            this.dgvTSIdentificador.Size = new System.Drawing.Size(556, 265);
             this.dgvTSIdentificador.TabIndex = 24;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Modern No. 20", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(1052, 498);
+            this.label4.Location = new System.Drawing.Point(812, 497);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(154, 21);
             this.label4.TabIndex = 26;
@@ -260,7 +264,7 @@ namespace AnalizadorLexico
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Modern No. 20", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(308, 498);
+            this.label6.Location = new System.Drawing.Point(229, 498);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(167, 21);
             this.label6.TabIndex = 28;
@@ -274,13 +278,70 @@ namespace AnalizadorLexico
             this.btnGuardarTabla.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnGuardarTabla.Font = new System.Drawing.Font("Century", 18F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnGuardarTabla.ForeColor = System.Drawing.Color.Red;
-            this.btnGuardarTabla.Location = new System.Drawing.Point(1017, 792);
+            this.btnGuardarTabla.Location = new System.Drawing.Point(775, 792);
             this.btnGuardarTabla.Name = "btnGuardarTabla";
             this.btnGuardarTabla.Size = new System.Drawing.Size(234, 41);
             this.btnGuardarTabla.TabIndex = 31;
             this.btnGuardarTabla.Text = "Guardar";
             this.btnGuardarTabla.UseVisualStyleBackColor = false;
             this.btnGuardarTabla.Click += new System.EventHandler(this.btnGuardarTabla_Click);
+            // 
+            // rtxtDerivaciones
+            // 
+            this.rtxtDerivaciones.Location = new System.Drawing.Point(926, 108);
+            this.rtxtDerivaciones.Name = "rtxtDerivaciones";
+            this.rtxtDerivaciones.Size = new System.Drawing.Size(375, 319);
+            this.rtxtDerivaciones.TabIndex = 40;
+            this.rtxtDerivaciones.Text = "";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Modern No. 20", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.Location = new System.Drawing.Point(1012, 76);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(191, 29);
+            this.label5.TabIndex = 41;
+            this.label5.Text = "DERIVACIÓN";
+            // 
+            // rtxtEnsamblador
+            // 
+            this.rtxtEnsamblador.Location = new System.Drawing.Point(1177, 521);
+            this.rtxtEnsamblador.Name = "rtxtEnsamblador";
+            this.rtxtEnsamblador.Size = new System.Drawing.Size(349, 312);
+            this.rtxtEnsamblador.TabIndex = 42;
+            this.rtxtEnsamblador.Text = "";
+            // 
+            // btnGenerarEnsamblador
+            // 
+            this.btnGenerarEnsamblador.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.btnGenerarEnsamblador.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnGenerarEnsamblador.Enabled = false;
+            this.btnGenerarEnsamblador.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGenerarEnsamblador.Font = new System.Drawing.Font("Century", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGenerarEnsamblador.Location = new System.Drawing.Point(1532, 533);
+            this.btnGenerarEnsamblador.Name = "btnGenerarEnsamblador";
+            this.btnGenerarEnsamblador.Size = new System.Drawing.Size(134, 71);
+            this.btnGenerarEnsamblador.TabIndex = 43;
+            this.btnGenerarEnsamblador.Text = "Generar código ensamblador";
+            this.btnGenerarEnsamblador.UseVisualStyleBackColor = false;
+            this.btnGenerarEnsamblador.Click += new System.EventHandler(this.btnGenerarEnsamblador_Click);
+            // 
+            // btnGuardarEnsamblador
+            // 
+            this.btnGuardarEnsamblador.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.btnGuardarEnsamblador.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnGuardarEnsamblador.Enabled = false;
+            this.btnGuardarEnsamblador.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGuardarEnsamblador.Font = new System.Drawing.Font("Century", 18F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGuardarEnsamblador.ForeColor = System.Drawing.Color.Red;
+            this.btnGuardarEnsamblador.Location = new System.Drawing.Point(1531, 628);
+            this.btnGuardarEnsamblador.Name = "btnGuardarEnsamblador";
+            this.btnGuardarEnsamblador.Size = new System.Drawing.Size(134, 71);
+            this.btnGuardarEnsamblador.TabIndex = 44;
+            this.btnGuardarEnsamblador.Text = "Guardar";
+            this.btnGuardarEnsamblador.UseVisualStyleBackColor = false;
+            this.btnGuardarEnsamblador.Click += new System.EventHandler(this.btnGuardarEnsamblador_Click);
             // 
             // lineNumbers_For_RichTextBox2
             // 
@@ -356,31 +417,16 @@ namespace AnalizadorLexico
             this.lineNumbers_For_RichTextBox1.Size = new System.Drawing.Size(17, 316);
             this.lineNumbers_For_RichTextBox1.TabIndex = 29;
             // 
-            // rtxtDerivaciones
-            // 
-            this.rtxtDerivaciones.Location = new System.Drawing.Point(926, 108);
-            this.rtxtDerivaciones.Name = "rtxtDerivaciones";
-            this.rtxtDerivaciones.Size = new System.Drawing.Size(375, 319);
-            this.rtxtDerivaciones.TabIndex = 40;
-            this.rtxtDerivaciones.Text = "";
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Modern No. 20", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(1012, 76);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(191, 29);
-            this.label5.TabIndex = 41;
-            this.label5.Text = "DERIVACIÓN";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlLight;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(1585, 845);
+            this.ClientSize = new System.Drawing.Size(1681, 845);
+            this.Controls.Add(this.btnGuardarEnsamblador);
+            this.Controls.Add(this.btnGenerarEnsamblador);
+            this.Controls.Add(this.rtxtEnsamblador);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.rtxtDerivaciones);
             this.Controls.Add(this.btnGuardarTabla);
@@ -444,6 +490,9 @@ namespace AnalizadorLexico
         private System.Windows.Forms.Button btnGuardarTabla;
         private System.Windows.Forms.RichTextBox rtxtDerivaciones;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.RichTextBox rtxtEnsamblador;
+        private System.Windows.Forms.Button btnGenerarEnsamblador;
+        private System.Windows.Forms.Button btnGuardarEnsamblador;
     }
 }
 

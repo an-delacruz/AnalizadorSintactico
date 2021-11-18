@@ -36,5 +36,13 @@ namespace AnalizadorLexico
             get { return _strValor; }
             set { _strValor = value; }
         }
+        private int _intLinea;
+
+        public int Linea
+        {
+            get { return _intLinea; }
+            set { _intLinea = value; }
+        }
+
     }
 }

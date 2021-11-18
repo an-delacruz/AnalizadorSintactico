@@ -18,7 +18,7 @@ namespace AnalizadorLexico
         public static List<Asignacion> lstOPAG = new List<Asignacion>();
         public static List<Condicion> lstCondiciones = new List<Condicion>();
         public static List<Switch> lstSwitches = new List<Switch>();
-
+        public static List<string> lstEnsamblador = new List<string>();
         private Estado _EstadoActual;
         public Estado EstadoActual
         {
@@ -121,7 +121,7 @@ namespace AnalizadorLexico
                                     break;
                                 }
                             }
-
+                            miIden.Linea = noLinea;
 
                             lstIdentificadores.Add(miIden);
                         }

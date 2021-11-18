@@ -28,7 +28,7 @@ namespace AnalizadorLexico
         }
         private void btnAnalizador_Click(object sender, EventArgs e)
         {
-            
+
             try
             {
                 Automata.lstOPAG.Clear();
@@ -70,7 +70,7 @@ namespace AnalizadorLexico
                         }
                         else if (caracterActual == '"')
                         {
-                            miAutomata.BuscarSiguienteEstado("C2", miConexion, 0, noLinea, cadenas, numPalabra); 
+                            miAutomata.BuscarSiguienteEstado("C2", miConexion, 0, noLinea, cadenas, numPalabra);
                         }
                         else
                         {
@@ -125,10 +125,11 @@ namespace AnalizadorLexico
                     }
                 }
                 rtxtErrores.Text = Errores;
-                ActualizarTablaSimbolosIdentificadores(Automata.lstIdentificadores, miAutomata.lstConstantes);
 
 
-                if(miAutomata.lstErrores.Count > 0) { btnGuardarArchivo.Enabled = false;
+                if (miAutomata.lstErrores.Count > 0)
+                {
+                    btnGuardarArchivo.Enabled = false;
                     btnGuardarArchivo.ForeColor = Color.Red;
                 }
                 else
@@ -150,9 +151,9 @@ namespace AnalizadorLexico
                 List<string> lstCorchetes = new List<string>();
 
                 //Verificar que la primera palabra sea INICIO y la ultima FIN y que solo haya una.
-                if (!arrTokens[0].Equals("PR15")){lstErroresSintacticosSemanticos.Add("Linea " + 1 + ": Error de semántica - Se esperaba la instrucción INICIO");}
+                if (!arrTokens[0].Equals("PR15")) { lstErroresSintacticosSemanticos.Add("Linea " + 1 + ": Error de semántica - Se esperaba la instrucción INICIO"); }
                 if (!arrTokens[arrTokens.Length - 1].Equals("PR10")) { lstErroresSintacticosSemanticos.Add("Linea " + arrTokens.Length + ": Error de semántica - Se esperaba la instrucción FIN"); }
-                
+
                 //Verificar que todos los identificadores usados hayan sido declarados.
                 foreach (Identificador identificador in Automata.lstIdentificadores)
                 {
@@ -162,7 +163,7 @@ namespace AnalizadorLexico
                         {
                             if (arrTokens[i].Contains("ID" + identificador.Numero.ToString().PadLeft(2, '0')))
                             {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Identificador no declarado");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Identificador no declarado");
                             }
                         }
                     }
@@ -175,7 +176,7 @@ namespace AnalizadorLexico
                         arrTokens[i] = arrTokens[i].Replace("TABU", "").Trim();
                     }
 
-                    if((arrTokens[i].Equals("PR10") || arrTokens[i].Equals("PR15")) && i != 0 && i != arrTokens.Length-1) { lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Instrucción inesperada");}
+                    if ((arrTokens[i].Equals("PR10") || arrTokens[i].Equals("PR15")) && i != 0 && i != arrTokens.Length - 1) { lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Instrucción inesperada"); }
                 }
 
                 for (int i = 0; i < arrTokens.Length; i++)
@@ -189,7 +190,7 @@ namespace AnalizadorLexico
                         if (arrTokens[i].Contains("PR23"))
                         {
                             miSwitch.Cadena = arrTokens[i];
-                            miSwitch.NumLinea = i+1;
+                            miSwitch.NumLinea = i + 1;
                         }
                         if (arrTokens[i + 1].Contains("CE07"))
                         //if (lstCorchetes.Contains("ABIERTO"))
@@ -197,7 +198,7 @@ namespace AnalizadorLexico
 
                             arrTokens[i] = arrTokens[i] + " " + arrTokens[i + 1];
                             //arrTokens[i] = arrTokens[i] + " " + "CE03";
-                            arrTokens[i+1] = "";
+                            arrTokens[i + 1] = "";
                             string ultimocaseevaluado = "";
                             string listacase = "";
                             for (int z = i + 1; z < arrTokens.Length; z++)
@@ -239,15 +240,15 @@ namespace AnalizadorLexico
                                     string rescaso = "";
                                     if (caso != "")
                                     {
-                                        rescaso = BottomUp(caso, 0, z+1);
+                                        rescaso = BottomUp(caso, 0, z + 1);
                                     }
                                     if (rescaso == "LISTACASE" || listacase.Contains("PR06"))
                                     {
-                                        if(caso != "")
+                                        if (caso != "")
                                         {
                                             Caso miCaso = new Caso();
                                             miCaso.Cadena = caso;
-                                            miCaso.NumLinea = z+1;
+                                            miCaso.NumLinea = z + 1;
                                             miSwitch.lstCasos.Add(miCaso);
                                         }
                                         ultimocaseevaluado = rescaso;
@@ -296,7 +297,7 @@ namespace AnalizadorLexico
                                         break;
                                     }
                                 }
-                                if (arrTokens[z].Contains("CE08")  &&  arrTokens[i].Contains("PR12") && arrTokens[z].Contains("PR19"))
+                                if (arrTokens[z].Contains("CE08") && arrTokens[i].Contains("PR12") && arrTokens[z].Contains("PR19"))
                                 {
 
                                     arrTokens[i] = arrTokens[i] + " " + listacase;
@@ -312,15 +313,15 @@ namespace AnalizadorLexico
                                 //Acomodo del sino para el sí y su verficación
                                 if (arrTokens[i].Contains("PR21") && arrTokens[z].Contains("PR22"))
                                 {
-                                   
+
                                     sino = arrTokens[z];
                                     arrTokens[z] = "";
-                                    if (arrTokens[z+1].Contains("CE07"))
+                                    if (arrTokens[z + 1].Contains("CE07"))
                                     {
-                                        sino = sino + " " + arrTokens[z+1];
+                                        sino = sino + " " + arrTokens[z + 1];
                                         arrTokens[z + 1] = "";
                                         lstCorchetes.Add("IMPAR");
-                                        for (int y = z+1; y < arrTokens.Length; y++)
+                                        for (int y = z + 1; y < arrTokens.Length; y++)
                                         {
                                             if (arrTokens[y].Contains("CE08"))
                                             {
@@ -333,32 +334,32 @@ namespace AnalizadorLexico
                                     }
                                     else
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de semántica - Corchete no abierto");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Corchete no abierto");
                                     }
                                     if (!sino.Contains("CE08"))
                                     {
-                                        lstErroresSintacticosSemanticos.Add("Linea " + (z+1) + ": Error de semántica - Corchete abierto pero no cerrado");
+                                        lstErroresSintacticosSemanticos.Add("Linea " + (z + 1) + ": Error de semántica - Corchete abierto pero no cerrado");
                                     }
-                                    sino = BottomUp(sino,0,z);
+                                    sino = BottomUp(sino, 0, z);
                                 }
                             }
                             if (!arrTokens[i].Contains("CE08"))
                             {
-                                lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Corchete abierto pero no cerrado");
+                                lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Corchete abierto pero no cerrado");
                             }
                         }
                         else
                         {
-                            lstErroresSintacticosSemanticos.Add("Linea " + (i+1) + ": Error de semántica - Corchete no abierto");
+                            lstErroresSintacticosSemanticos.Add("Linea " + (i + 1) + ": Error de semántica - Corchete no abierto");
                         }
                     }
-                    if(!arrTokens[i].Contains("Error"))
+                    if (!arrTokens[i].Contains("Error"))
                     {
                         if (arrTokens[i].Contains("PR21"))
                         {
                             string si = arrTokens[i] + " " + sino;
                             lstDerivaciones.Add(si);
-                            
+
                             arrResultado[i] = BottomUp(si, 0, i + 1);
                         }
                         else
@@ -390,7 +391,7 @@ namespace AnalizadorLexico
                     }
                     if (arrTokens[i].Contains("CE04"))
                     {
-                        balanceParentesis = balanceParentesis - Regex.Matches(arrTokens[i], "CE04").Count; 
+                        balanceParentesis = balanceParentesis - Regex.Matches(arrTokens[i], "CE04").Count;
                     }
                 }
 
@@ -398,7 +399,7 @@ namespace AnalizadorLexico
                 {
                     if (balanceParentesis > 0)
                     {
-                        for (int i = arrTokens.Length-1; i >= 0; i--)
+                        for (int i = arrTokens.Length - 1; i >= 0; i--)
                         {
                             if (arrTokens[i].Contains("CE03") && (Regex.Matches(arrTokens[i], "CE03").Count > Regex.Matches(arrTokens[i], "CE04").Count))
                             {
@@ -408,7 +409,7 @@ namespace AnalizadorLexico
                     }
                     else if (balanceParentesis < 0)
                     {
-                        for (int i = arrTokens.Length-1; i >= 0; i--)
+                        for (int i = arrTokens.Length - 1; i >= 0; i--)
                         {
                             if (arrTokens[i].Contains("CE04") && (Regex.Matches(arrTokens[i], "CE04").Count > Regex.Matches(arrTokens[i], "CE03").Count))
                             {
@@ -435,7 +436,7 @@ namespace AnalizadorLexico
                 {
                     if (balanceoCorchetes > 0)
                     {
-                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE07") +1) +": Error de semántica - Corchete abierto pero no cerrado");
+                        lstErroresSintacticosSemanticos.Add("Linea " + (Array.LastIndexOf(arrTokens, "CE07") + 1) + ": Error de semántica - Corchete abierto pero no cerrado");
                     }
 
                     else if (balanceoCorchetes < 0)
@@ -449,7 +450,7 @@ namespace AnalizadorLexico
                 {
                     if (arrTokens[i].Contains("CE05"))
                     {
-                        balanceoLlaves = balanceoLlaves + Regex.Matches(arrTokens[i],"CE05").Count;
+                        balanceoLlaves = balanceoLlaves + Regex.Matches(arrTokens[i], "CE05").Count;
                     }
                     if (arrTokens[i].Contains("CE06"))
                     {
@@ -505,7 +506,7 @@ namespace AnalizadorLexico
                     {
                         lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Asignación invalida");
                     }
-                    else if(tipoDatoAsignacion[0].Equals("CADENA") && (operandosAsignacion.Contains("OPA2") || operandosAsignacion.Contains("OPA3") || operandosAsignacion.Contains("OPA4")))
+                    else if (tipoDatoAsignacion[0].Equals("CADENA") && (operandosAsignacion.Contains("OPA2") || operandosAsignacion.Contains("OPA3") || operandosAsignacion.Contains("OPA4")))
                     {
                         lstErroresSintacticosSemanticos.Add("Linea " + Asig.NumLinea + ": Error de semántica - Asignación invalida");
                     }
@@ -581,7 +582,7 @@ namespace AnalizadorLexico
                                 lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un identificador ENTERO");
                             }
                         }
-                        if(desde[2].Contains("ID"))
+                        if (desde[2].Contains("ID"))
                         {
                             int numID = int.Parse(desde[0].Substring(2));
                             Identificador miIden = BuscarIdentificador(numID);
@@ -590,7 +591,7 @@ namespace AnalizadorLexico
                                 lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
                             }
                         }
-                        else if(desde[2] != "CNEN")
+                        else if (desde[2] != "CNEN")
                         {
                             lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
                         }
@@ -628,7 +629,7 @@ namespace AnalizadorLexico
                             lstErroresSintacticosSemanticos.Add("Linea " + cond.NumLinea + ": Error de semántica - Se esperaba un tipo de dato ENTERO");
                         }
                     }
-                    else if(cond.Cadena.Contains("PR19") || cond.Cadena.Contains("PR21") && !cond.Cadena.Contains("PR05"))
+                    else if (cond.Cadena.Contains("PR19") || cond.Cadena.Contains("PR21") && !cond.Cadena.Contains("PR05"))
                     {
                         string[] condic = cond.Cadena.Substring(cond.Cadena.IndexOf("CE03") + 4, cond.Cadena.IndexOf("CE04") - cond.Cadena.IndexOf("CE03") - 4).Trim().Split(' ');
                         for (int i = 0; i < condic.Length; i++)
@@ -651,7 +652,7 @@ namespace AnalizadorLexico
                 }
                 #endregion
 
-                #region TIpo de datos switch
+                #region Tipo de datos switch
                 foreach (Switch @switch in Automata.lstSwitches)
                 {
                     string condicSwitch = @switch.Cadena.Substring(@switch.Cadena.IndexOf("CE03") + 4, @switch.Cadena.IndexOf("CE04") - @switch.Cadena.IndexOf("CE03") - 4).Trim();
@@ -684,7 +685,7 @@ namespace AnalizadorLexico
                                 }
                             }
                         }
-                        else if(condicCaso.Length == 1)
+                        else if (condicCaso.Length == 1)
                         {
                             if (condicCaso[0].Contains("ID"))
                             {
@@ -737,7 +738,21 @@ namespace AnalizadorLexico
                 }
                 rtxtErrores.Text = Errores;
                 txtErrores.Text = (miAutomata.lstErrores.Count + lstErroresSintacticosSemanticos.Count).ToString();
-
+                if (miAutomata.lstErrores.Count == 0 && lstErroresSintacticosSemanticos.Count == 0)
+                {
+                    string[] arrInstrucciones = rtxtProgramaFuente.Text.Trim().Split('\n');
+                    btnGenerarEnsamblador.Enabled = true;
+                    foreach (Identificador identificador in Automata.lstIdentificadores)
+                    {
+                        string instruccion = arrInstrucciones[identificador.Linea-1];
+                        if (instruccion.Contains("="))
+                        {
+                            identificador.Valor = instruccion.Substring(instruccion.IndexOf('=') + 2).Trim().Replace(";", "");
+                        }
+                    }
+                }
+                rtxtProgramaFuente.Text = rtxtProgramaFuente.Text.Trim();
+                ActualizarTablaSimbolosIdentificadores(Automata.lstIdentificadores, miAutomata.lstConstantes);
                 lstDerivaciones.Clear();
                 lstErroresSintacticosSemanticos.Clear();                
                 #endregion
@@ -1042,6 +1057,81 @@ namespace AnalizadorLexico
         {
             Identificador miIden = Automata.lstIdentificadores.Where(iden => iden.Numero == numIden).FirstOrDefault();
             return miIden;
+        }
+
+        private void btnGenerarEnsamblador_Click(object sender, EventArgs e)
+        {
+            Automata.lstEnsamblador.Clear();
+            rtxtEnsamblador.Clear();
+            string[] arrCodigo = rtxtProgramaFuente.Text.Trim().Split('\n').ToArray();
+            string lineaEnsambladorInicio = "code segment\nassume cs:code, ds:code, ss:code\norg 100h";
+            Automata.lstEnsamblador.Add(lineaEnsambladorInicio);
+            foreach (Identificador identificador in Automata.lstIdentificadores)
+            {
+                string lineaEnsamblador = identificador.Nombre + " db";
+                if (identificador.Valor != null && identificador.Valor != "")
+                {
+                    if (identificador.TipoDato == "CADENA" || identificador.TipoDato == "CARACTER")
+                    {
+                        lineaEnsamblador = lineaEnsamblador + " '" + identificador.Valor + "'";
+                    }
+                    else
+                    {
+                        lineaEnsamblador = lineaEnsamblador + " " + identificador.Valor;
+                    }
+                }
+                else
+                {
+                    lineaEnsamblador = lineaEnsamblador + " ?";
+                }
+                Automata.lstEnsamblador.Add(lineaEnsamblador);
+            }
+            for (int i = 0; i < arrCodigo.Length; i++)
+            {
+                string lineaEnsamblador;
+                if (arrCodigo[i] == "INICIO;")
+                {
+                    lineaEnsamblador = "main proc";
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    continue;
+                }
+                else if (arrCodigo[i] == "FIN;")
+                {
+                    lineaEnsamblador = "main endp\ncode ends\nend main";
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    continue;
+                }
+                else if(arrCodigo[i] == "LIMPIAR;")
+                {
+                    lineaEnsamblador = "mov ah,0Fh\nint 10h\nmov ah,0\nint 10h";
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    continue;
+                }
+                if(arrCodigo[i].Contains("IMPRIMIR"))
+                {
+                    string instruccion = arrCodigo[i];
+
+                    lineaEnsamblador = "mov dx, OFFSET " + ReemplazarCadena(arrCodigo[i],"IMPRIMIR;","").Replace(";","") + "\n";
+                    lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    continue;
+                }
+
+            }
+            
+            foreach (string cadena in Automata.lstEnsamblador)
+            {
+                rtxtEnsamblador.Text = rtxtEnsamblador.Text + cadena + "\n";
+            }
+            rtxtEnsamblador.Text = rtxtEnsamblador.Text.Trim();
+            btnGuardarEnsamblador.Enabled = true;
+            btnGuardarEnsamblador.ForeColor = Color.Green;
+
+        }
+
+        private void btnGuardarEnsamblador_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
