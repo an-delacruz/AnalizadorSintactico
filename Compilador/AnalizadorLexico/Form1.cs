@@ -1071,18 +1071,37 @@ namespace AnalizadorLexico
                 string lineaEnsamblador = identificador.Nombre + " db";
                 if (identificador.Valor != null && identificador.Valor != "")
                 {
-                    if (identificador.TipoDato == "CADENA" || identificador.TipoDato == "CARACTER")
+                    if (identificador.TipoDato == "ENTERO" || identificador.TipoDato == "REAL")
                     {
-                        lineaEnsamblador = lineaEnsamblador + " '" + identificador.Valor + "'";
+                        lineaEnsamblador = lineaEnsamblador + " " + identificador.Valor + "d";
+
                     }
-                    else
+                    else if(identificador.TipoDato == "CADENA" || identificador.TipoDato == "CARACTER")
                     {
-                        lineaEnsamblador = lineaEnsamblador + " " + identificador.Valor;
+                        lineaEnsamblador = lineaEnsamblador + " 0DH,0AH, " + identificador.Valor + ",'$'";
+                    }
+                    else if(identificador.TipoDato == "BOOL")
+                    {
+                        if (identificador.Valor == "verdadero")
+                        {
+                            lineaEnsamblador = lineaEnsamblador + " 1d";
+                        }
+                        else if(identificador.Valor == "falso")
+                        {
+                            lineaEnsamblador = lineaEnsamblador + " 0d";
+                        }
                     }
                 }
                 else
                 {
-                    lineaEnsamblador = lineaEnsamblador + " ?";
+                    if (identificador.TipoDato == "CADENA")
+                    {
+                        lineaEnsamblador = lineaEnsamblador + " 255 DUP ('$')";
+                    }
+                    else
+                    {
+                        lineaEnsamblador = lineaEnsamblador + " ?";
+                    }
                 }
                 Automata.lstEnsamblador.Add(lineaEnsamblador);
             }
@@ -1091,7 +1110,7 @@ namespace AnalizadorLexico
                 string lineaEnsamblador;
                 if (arrCodigo[i] == "INICIO;")
                 {
-                    lineaEnsamblador = "main proc";
+                    lineaEnsamblador = "main proc\nmov ax,cs\nmov ds,ax";
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
                     continue;
                 }
@@ -1107,17 +1126,50 @@ namespace AnalizadorLexico
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
                     continue;
                 }
-                if(arrCodigo[i].Contains("IMPRIMIR"))
+                else if(arrCodigo[i].Contains("IMPRIMIR"))
                 {
                     string instruccion = arrCodigo[i];
-                    lineaEnsamblador = "mov dx, OFFSET " + ReemplazarCadena(arrCodigo[i],"IMPRIMIR;","").Replace(";","") + "\n";
-                    lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
-                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    string nombreIden = ReemplazarCadena(arrCodigo[i], "IMPRIMIR;", "").Replace(";", "");
+                    Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
+                    if (iden != null)
+                    {
+                        if (iden.TipoDato == "CADENA")
+                        {
+                            lineaEnsamblador = "lea dx," + iden.Nombre + "\n";
+                            lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
+                            Automata.lstEnsamblador.Add(lineaEnsamblador);
+
+                        }
+                        else if (iden.TipoDato == "CARACTER")
+                        {
+                            lineaEnsamblador = "mov ah, 2\nmov dl, " + iden.Nombre + "\nint 21h";
+                            Automata.lstEnsamblador.Add(lineaEnsamblador);
+
+                        }
+                    }
                     continue;
                 }
-                if(arrCodigo[i].Contains("SI"))
+                else if (arrCodigo[i].Contains("LEER"))
                 {
+                    string instruccion = arrCodigo[i];
+                    string nombreIden = ReemplazarCadena(arrCodigo[i], "LEER;", "").Replace(";", "");
+                    Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
+                    if (iden != null )
+                    {
+                        if (iden.TipoDato == "CARACTER")
+                        {
+                            lineaEnsamblador = "mov ah,1\nint 21h\nmov " + iden.Nombre +",al";
+                            Automata.lstEnsamblador.Add(lineaEnsamblador);
 
+                        }
+                    }
+                    continue;
+                }
+                else if(arrCodigo[i] == "LIMPIARLINEA;")
+                {
+                    lineaEnsamblador = "mov DL, 10\nmov AH, 02h\nint 21h\nmov DL, 13\nmov AH, 02h\nint 21h";
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    continue;
                 }
 
             }
@@ -1134,7 +1186,20 @@ namespace AnalizadorLexico
 
         private void btnGuardarEnsamblador_Click(object sender, EventArgs e)
         {
-
+            SaveFileDialog Guardar = new SaveFileDialog();
+            Guardar.Filter = "Archivos TASM |*.asm"; //se abre cualquier tipo.
+            Guardar.Title = "Guardar como..."; //titulo del mensaje de dialogo
+            Guardar.FileName = "Progama";
+            var resultado = Guardar.ShowDialog();
+            if (resultado == DialogResult.OK)
+            {
+                StreamWriter escribir = new StreamWriter(Guardar.FileName);
+                foreach (object line in rtxtEnsamblador.Lines)
+                {
+                    escribir.WriteLine(line);
+                }
+                escribir.Close();
+            }
         }
     }
 }
