@@ -1108,68 +1108,43 @@ namespace AnalizadorLexico
             for (int i = 0; i < arrCodigo.Length; i++)
             {
                 string lineaEnsamblador;
-                if (arrCodigo[i] == "INICIO;")
+                if (arrCodigo[i].Contains("CICLOFOR"))
                 {
-                    lineaEnsamblador = "main proc\nmov ax,cs\nmov ds,ax";
-                    Automata.lstEnsamblador.Add(lineaEnsamblador);
-                    continue;
-                }
-                else if (arrCodigo[i] == "FIN;")
-                {
-                    lineaEnsamblador = "main endp\ncode ends\nend main";
-                    Automata.lstEnsamblador.Add(lineaEnsamblador);
-                    continue;
-                }
-                else if(arrCodigo[i] == "LIMPIAR;")
-                {
-                    lineaEnsamblador = "mov ah,0Fh\nint 10h\nmov ah,0\nint 10h";
-                    Automata.lstEnsamblador.Add(lineaEnsamblador);
-                    continue;
-                }
-                else if(arrCodigo[i].Contains("IMPRIMIR"))
-                {
-                    string instruccion = arrCodigo[i];
-                    string nombreIden = ReemplazarCadena(arrCodigo[i], "IMPRIMIR;", "").Replace(";", "");
-                    Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
-                    if (iden != null)
+                    string[] desde = arrCodigo[i].Substring(arrCodigo[i].IndexOf("DESDE") + 5, arrCodigo[i].IndexOf("MIENTRAS") - arrCodigo[i].IndexOf("DESDE") - 5).Trim().Split(';');
+                    lineaEnsamblador = "xor cx, cx\n";
+                    string valorInicial = desde[desde.Length - 2];
+                    string[] mientras = arrCodigo[i].Substring(arrCodigo[i].IndexOf("MIENTRAS") + 8, arrCodigo[i].IndexOf("INCREMENTO") - arrCodigo[i].IndexOf("MIENTRAS") - 8).Trim().Split(';');
+                    string valorCondicion = mientras[3];
+                    string opRel = mientras[2];
+                    string iden = desde[1];
+                    string InicioCuerpo = "loop1:\nmov " + iden + ", cl\n";
+                    string cuerpo = "";
+                    if (opRel == "<=")
                     {
-                        if (iden.TipoDato == "CADENA")
+                        opRel = "inc cx\ncmp cx, "+ valorCondicion +"\njle loop1";
+                    }
+                    for (int k = i+1; k < arrCodigo.Length; k++)
+                    {
+                        if (arrCodigo[k].Contains("}"))
                         {
-                            lineaEnsamblador = "lea dx," + iden.Nombre + "\n";
-                            lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
-                            Automata.lstEnsamblador.Add(lineaEnsamblador);
-
+                            break;
                         }
-                        else if (iden.TipoDato == "CARACTER")
+                        else
                         {
-                            lineaEnsamblador = "mov ah, 2\nmov dl, " + iden.Nombre + "\nint 21h";
-                            Automata.lstEnsamblador.Add(lineaEnsamblador);
-
+                            cuerpo = cuerpo + ConvertirEnsamblador(arrCodigo[k]) +"\n";
+                            arrCodigo[k] = "";
                         }
                     }
-                    continue;
-                }
-                else if (arrCodigo[i].Contains("LEER"))
-                {
-                    string instruccion = arrCodigo[i];
-                    string nombreIden = ReemplazarCadena(arrCodigo[i], "LEER;", "").Replace(";", "");
-                    Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
-                    if (iden != null )
-                    {
-                        if (iden.TipoDato == "CARACTER")
-                        {
-                            lineaEnsamblador = "mov ah,1\nint 21h\nmov " + iden.Nombre +",al";
-                            Automata.lstEnsamblador.Add(lineaEnsamblador);
-
-                        }
-                    }
-                    continue;
-                }
-                else if(arrCodigo[i] == "LIMPIARLINEA;")
-                {
-                    lineaEnsamblador = "mov DL, 10\nmov AH, 02h\nint 21h\nmov DL, 13\nmov AH, 02h\nint 21h";
+                    lineaEnsamblador = lineaEnsamblador + InicioCuerpo + cuerpo + opRel;
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
-                    continue;
+                }
+                else
+                {
+                    lineaEnsamblador = ConvertirEnsamblador(arrCodigo[i]);
+                    if (lineaEnsamblador != "")
+                    {
+                        Automata.lstEnsamblador.Add(lineaEnsamblador);
+                    }
                 }
 
             }
@@ -1200,6 +1175,108 @@ namespace AnalizadorLexico
                 }
                 escribir.Close();
             }
+        }
+        string conversionBinario(string iden, string varAux)
+        {
+            string res = "lea si, " + iden +
+                "\nmov ax, [si+2]\nsub ax, 3030h\ncmp ah,9" +
+                "\njbe numero\nsub ah,7\nnumero:" +
+                "\ncmp al, 9\njbe numero1\nsub al,7" +
+                "\nnumero1:\nxchg ah,al\nmov cl,4\nshl al,cl" +
+                "\nshr ax,cl\nmov " + varAux + ", al";
+            return res;
+        }
+        string ConvertirEnsamblador(string cadena)
+        {
+            string lineaEnsamblador = "";
+            if (cadena == "INICIO;")
+            {
+                lineaEnsamblador = "main proc\nmov ax,cs\nmov ds,ax";
+            }
+            else if (cadena == "FIN;")
+            {
+                lineaEnsamblador = "mov ah,08\nint 21h\nmain endp\ncode ends\nend main";
+            }
+            else if (cadena == "LIMPIAR;")
+            {
+                lineaEnsamblador = "mov ah,0Fh\nint 10h\nmov ah,0\nint 10h";
+            }
+            else if (cadena.Contains("IMPRIMIR"))
+            {
+                string instruccion = cadena;
+                string nombreIden = ReemplazarCadena(cadena, "IMPRIMIR;", "").Replace(";", "");
+                Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
+                if (iden != null)
+                {
+                    if (iden.TipoDato == "CADENA")
+                    {
+                        lineaEnsamblador = "lea dx," + iden.Nombre + "\n";
+                        lineaEnsamblador = lineaEnsamblador + "mov ah,09h\nint 21h";
+
+                    }
+                    else if (iden.TipoDato == "CARACTER" || iden.TipoDato == "ENTERO")
+                    {
+                        if (iden.TipoDato == "ENTERO")
+                        {
+                            lineaEnsamblador =  "add " + iden.Nombre + ", 30h";
+                            lineaEnsamblador = lineaEnsamblador + "\nmov ah, 2\nmov dl, " + iden.Nombre + "\nint 21h";
+                        }
+                        else
+                        {
+                            lineaEnsamblador = "mov ah, 2\nmov dl, " + iden.Nombre + "\nint 21h";
+                        }
+                    }
+                }
+            }
+            else if (cadena.Contains("LEER"))
+            {
+                string instruccion = cadena;
+                string nombreIden = ReemplazarCadena(cadena, "LEER;", "").Replace(";", "");
+                Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
+                if (iden != null)
+                {
+                    if (iden.TipoDato == "CARACTER")
+                    {
+                        lineaEnsamblador = "mov ah,1\nint 21h\nmov " + iden.Nombre + ",al";
+
+                    }
+                }
+            }
+            else if (cadena == "LIMPIARLINEA;")
+            {
+                lineaEnsamblador = "mov DL, 10\nmov AH, 02h\nint 21h\nmov DL, 13\nmov AH, 02h\nint 21h";
+            }
+            else if (cadena.Contains("=") && !cadena.Contains("CICLOFOR") && !cadena.Contains("MIENTRAS") && !cadena.Contains("BOOL") && !cadena.Contains("CADENA")
+                && !cadena.Contains("CARACTER") && !cadena.Contains("ENTERO") && !cadena.Contains("REAL"))
+            {
+                string[] arrTokens = cadena.Split(';');
+                string iden = arrTokens[0];
+                List<String> lstOperandos = new List<string>();
+                List<String> lstOperadores = new List<string>();
+                for (int j = 2; j < arrTokens.Length; j++)
+                {
+                    if (arrTokens[j].Equals("+") || arrTokens[j].Equals("-") || arrTokens[j].Equals("/") || arrTokens[j].Equals("*"))
+                    {
+                        lstOperadores.Add(arrTokens[j]);
+                    }
+                    else if (arrTokens[j] != "")
+                    {
+                        lstOperandos.Add(arrTokens[j]);
+                    }
+                }
+                lineaEnsamblador = "mov " + iden;
+                if (lstOperandos.Count == 1)
+                {
+                    lineaEnsamblador = lineaEnsamblador + ", " + lstOperandos[0];
+                    //int numero;
+                    //bool esEntero = int.TryParse(lstOperandos[0], out numero);
+                    //if (esEntero)
+                    //{
+                    //    lineaEnsamblador = lineaEnsamblador + "\nadd " + iden + ", 30h";
+                    //}
+                }
+            }
+            return lineaEnsamblador;
         }
     }
 }
