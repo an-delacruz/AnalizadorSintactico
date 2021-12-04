@@ -1068,27 +1068,27 @@ namespace AnalizadorLexico
             Automata.lstEnsamblador.Add(lineaEnsambladorInicio);
             foreach (Identificador identificador in Automata.lstIdentificadores)
             {
-                string lineaEnsamblador = identificador.Nombre + " db";
+                string lineaEnsamblador = identificador.Nombre;
                 if (identificador.Valor != null && identificador.Valor != "")
                 {
                     if (identificador.TipoDato == "ENTERO" || identificador.TipoDato == "REAL")
                     {
-                        lineaEnsamblador = lineaEnsamblador + " " + identificador.Valor + "d";
+                        lineaEnsamblador = lineaEnsamblador + " dw " + identificador.Valor + "d";
 
                     }
                     else if(identificador.TipoDato == "CADENA" || identificador.TipoDato == "CARACTER")
                     {
-                        lineaEnsamblador = lineaEnsamblador + " 0DH,0AH, " + identificador.Valor + ",'$'";
+                        lineaEnsamblador = lineaEnsamblador + " db 0DH,0AH, " + identificador.Valor + ",'$'";
                     }
                     else if(identificador.TipoDato == "BOOL")
                     {
                         if (identificador.Valor == "verdadero")
                         {
-                            lineaEnsamblador = lineaEnsamblador + " 1d";
+                            lineaEnsamblador = lineaEnsamblador + " db 1d";
                         }
                         else if(identificador.Valor == "falso")
                         {
-                            lineaEnsamblador = lineaEnsamblador + " 0d";
+                            lineaEnsamblador = lineaEnsamblador + " db 0d";
                         }
                     }
                 }
@@ -1098,9 +1098,13 @@ namespace AnalizadorLexico
                     {
                         lineaEnsamblador = lineaEnsamblador + " 255 DUP ('$')";
                     }
+                    else if(identificador.TipoDato == "ENTERO" || identificador.TipoDato=="REAL")
+                    {
+                        lineaEnsamblador = lineaEnsamblador + " dw ?";
+                    }
                     else
                     {
-                        lineaEnsamblador = lineaEnsamblador + " ?";
+                        lineaEnsamblador = lineaEnsamblador + " db ?";
                     }
                 }
                 Automata.lstEnsamblador.Add(lineaEnsamblador);
@@ -1117,7 +1121,7 @@ namespace AnalizadorLexico
                     string valorCondicion = mientras[3];
                     string opRel = mientras[2];
                     string iden = desde[1];
-                    string InicioCuerpo = "loop1:\nmov " + iden + ", cl\n";
+                    string InicioCuerpo = "loop1:\nmov " + iden + ", cx\n";
                     string cuerpo = "";
                     if (opRel == "<=")
                     {
@@ -1138,6 +1142,65 @@ namespace AnalizadorLexico
                     lineaEnsamblador = lineaEnsamblador + InicioCuerpo + cuerpo + opRel;
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
                 }
+                if (arrCodigo[i].Contains("mientras") && !arrCodigo.Contains("ciclofor"))
+                {
+                    string[] mientras = arrCodigo[i].Substring(arrCodigo[i].IndexOf("(;") + 2, arrCodigo[i].IndexOf(");") - arrCodigo[i].IndexOf("(;") - 2).Trim().Split(';');
+                    string iden = mientras[0];
+                    Identificador identificador = Automata.lstIdentificadores.Find(v => v.Nombre == iden);
+                    string valorCondicion = mientras[2];
+                    string opRel = mientras[1];
+                    string InicioCuerpo = "jmp loop1\ncloop1:\n";
+                    string cuerpo = "";
+                    if (opRel == ">")
+                    {
+                        opRel = "\nloop1:\ncmp " + identificador.Nombre + ", " + valorCondicion + "\njg cloop1";
+                    }
+                    for (int k = i + 1; k < arrCodigo.Length; k++)
+                    {
+                        if (arrCodigo[k].Contains("}"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cuerpo = cuerpo + ConvertirEnsamblador(arrCodigo[k]) + "\n";
+                            arrCodigo[k] = "";
+                        }
+                    }
+                    lineaEnsamblador =  InicioCuerpo + cuerpo + opRel;
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                }
+                if (arrCodigo[i].Contains("haz"))
+                {
+                    string InicioCuerpo = "loop1:";
+                    string cuerpo = "";
+                    string opRel = "";
+                    for (int k = i + 1; k < arrCodigo.Length; k++)
+                    {
+                        if (arrCodigo[k].Contains("}") && arrCodigo[k].Contains("mientras"))
+                        {
+                            string[] mientras = arrCodigo[k].Substring(arrCodigo[k].IndexOf("(;") + 2, arrCodigo[k].IndexOf(");") - arrCodigo[k].IndexOf("(;") - 2).Trim().Split(';');
+                            string iden = mientras[0];
+                            Identificador identificador = Automata.lstIdentificadores.Find(v => v.Nombre == iden);
+                            string valorCondicion = mientras[2];
+                            opRel = mientras[1];
+                            if (opRel == "<")
+                            {
+                                opRel = "\ncmp " + identificador.Nombre + ", " + valorCondicion + "\njl loop1";
+                            }
+                            arrCodigo[k] = "";
+                            break;
+                        }
+                        else
+                        {
+                            cuerpo = cuerpo + ConvertirEnsamblador(arrCodigo[k]) + "\n";
+                            arrCodigo[k] = "";
+                        }
+                    }
+
+                    lineaEnsamblador = InicioCuerpo + cuerpo + opRel;
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                }
                 else
                 {
                     lineaEnsamblador = ConvertirEnsamblador(arrCodigo[i]);
@@ -1146,7 +1209,6 @@ namespace AnalizadorLexico
                         Automata.lstEnsamblador.Add(lineaEnsamblador);
                     }
                 }
-
             }
             
             foreach (string cadena in Automata.lstEnsamblador)
@@ -1219,7 +1281,8 @@ namespace AnalizadorLexico
                         if (iden.TipoDato == "ENTERO")
                         {
                             lineaEnsamblador =  "add " + iden.Nombre + ", 30h";
-                            lineaEnsamblador = lineaEnsamblador + "\nmov ah, 2\nmov dl, " + iden.Nombre + "\nint 21h";
+                            lineaEnsamblador = lineaEnsamblador + "\nmov ah, 2\nmov dx, " + iden.Nombre + "\nint 21h";
+                            lineaEnsamblador = lineaEnsamblador + "\nsub " + iden.Nombre + ", 30h";
                         }
                         else
                         {
@@ -1264,16 +1327,59 @@ namespace AnalizadorLexico
                         lstOperandos.Add(arrTokens[j]);
                     }
                 }
-                lineaEnsamblador = "mov " + iden;
-                if (lstOperandos.Count == 1)
+                //if (lstOperandos.Count == 1)
+                //{
+                //    lineaEnsamblador = lineaEnsamblador + ", " + lstOperandos[0];
+                //}
+                lineaEnsamblador = "\nxor ax, ax\n";
+                for (int i = 0; i < lstOperandos.Count; i++)
                 {
-                    lineaEnsamblador = lineaEnsamblador + ", " + lstOperandos[0];
-                    //int numero;
-                    //bool esEntero = int.TryParse(lstOperandos[0], out numero);
-                    //if (esEntero)
-                    //{
-                    //    lineaEnsamblador = lineaEnsamblador + "\nadd " + iden + ", 30h";
-                    //}
+                    if (lstOperandos.Count == 1)
+                    {
+                        lineaEnsamblador =lineaEnsamblador+ "\nmov vVar, " + lstOperandos[i];
+                    }
+                    else
+                    {
+                        if (i == 0)
+                        {
+                            lineaEnsamblador = lineaEnsamblador+"mov ax," + iden;
+
+                        }
+                        else
+                        {
+
+                            string operador = "";
+                            if (lstOperadores[i - 1].Equals("+"))
+                            {
+                                operador = "add";
+                                lineaEnsamblador = lineaEnsamblador + "\n" + operador + " ax" + ", " + lstOperandos[i];
+
+                            }
+                            if (lstOperadores[i - 1].Equals("-"))
+                            {
+                                operador = "sub";
+                                lineaEnsamblador = lineaEnsamblador + "\n" + operador + " ax " + ", " + lstOperandos[i];
+
+                            }
+                            if (lstOperandos[i - 1].Equals("*"))
+                            {
+                                operador = "MUL";
+                                lineaEnsamblador = lineaEnsamblador + "\n mov ax, " + iden;
+                                lineaEnsamblador = lineaEnsamblador + "\n" + operador + " " + lstOperandos[i];
+                                //lineaEnsamblador = lineaEnsamblador + "\nmov " + iden + ", ax";
+                            }
+                            if (lstOperandos[i - 1].Equals("/"))
+                            {
+                                operador = "DIV";
+                                lineaEnsamblador = lineaEnsamblador + "\n mov ax, " + iden;
+                                lineaEnsamblador = lineaEnsamblador + "\n" + operador + " " + lstOperandos[i];
+                            }
+                            lineaEnsamblador = lineaEnsamblador + "\nmov " + iden + ", ax";
+
+                        }
+                    }
+
+
                 }
             }
             return lineaEnsamblador;
