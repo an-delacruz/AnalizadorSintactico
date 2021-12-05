@@ -1331,7 +1331,7 @@ namespace AnalizadorLexico
                 //{
                 //    lineaEnsamblador = lineaEnsamblador + ", " + lstOperandos[0];
                 //}
-                lineaEnsamblador = "\nxor ax, ax\n";
+                lineaEnsamblador = "\nxor dx, dx\nxor ax, ax\n";
                 for (int i = 0; i < lstOperandos.Count; i++)
                 {
                     if (lstOperandos.Count == 1)
@@ -1342,7 +1342,7 @@ namespace AnalizadorLexico
                     {
                         if (i == 0)
                         {
-                            lineaEnsamblador = lineaEnsamblador+"mov ax," + iden;
+                            lineaEnsamblador = lineaEnsamblador+"mov ax," + lstOperandos[i];
 
                         }
                         else
@@ -1361,17 +1361,15 @@ namespace AnalizadorLexico
                                 lineaEnsamblador = lineaEnsamblador + "\n" + operador + " ax " + ", " + lstOperandos[i];
 
                             }
-                            if (lstOperandos[i - 1].Equals("*"))
+                            if (lstOperadores[i - 1].Equals("*"))
                             {
                                 operador = "MUL";
-                                lineaEnsamblador = lineaEnsamblador + "\n mov ax, " + iden;
                                 lineaEnsamblador = lineaEnsamblador + "\n" + operador + " " + lstOperandos[i];
                                 //lineaEnsamblador = lineaEnsamblador + "\nmov " + iden + ", ax";
                             }
-                            if (lstOperandos[i - 1].Equals("/"))
+                            if (lstOperadores[i - 1].Equals("/"))
                             {
                                 operador = "DIV";
-                                lineaEnsamblador = lineaEnsamblador + "\n mov ax, " + iden;
                                 lineaEnsamblador = lineaEnsamblador + "\n" + operador + " " + lstOperandos[i];
                             }
                             lineaEnsamblador = lineaEnsamblador + "\nmov " + iden + ", ax";
