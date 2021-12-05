@@ -1201,6 +1201,59 @@ namespace AnalizadorLexico
                     lineaEnsamblador = InicioCuerpo + cuerpo + opRel;
                     Automata.lstEnsamblador.Add(lineaEnsamblador);
                 }
+                if (arrCodigo[i].Contains("SI"))
+                {
+                    string InicioCuerpoSi = "\nSI:";
+                    string InicioCuerpoElse = "\nSINO:";
+                    string cuerpoSi = "";
+                    string cuerpoSino = "";
+                    string opRel = "";
+                    string[] si = arrCodigo[i].Substring(arrCodigo[i].IndexOf("(;") + 2, arrCodigo[i].IndexOf(");") - arrCodigo[i].IndexOf("(;") - 2).Trim().Split(';');
+                    string iden = si[0];
+                    Identificador identificador = Automata.lstIdentificadores.Find(v => v.Nombre == iden);
+                    string valorCondicion = si[2];
+                    opRel = si[1];
+                    if (opRel == ">")
+                    {
+                        opRel = "cmp " + identificador.Nombre + ", " + valorCondicion + "\njle SINO";
+                    }
+                    for (int k = i+1; k < arrCodigo.Length; k++)
+                    {
+                        if (arrCodigo[k].Contains("}"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cuerpoSi = cuerpoSi + ConvertirEnsamblador(arrCodigo[k]) + "\n";
+                            arrCodigo[k] = "";
+                        }
+                    }
+                    for (int z = i+1; z < arrCodigo.Length; z++)
+                    {
+                        if (arrCodigo[z].Contains("SINO"))
+                        {
+                            for (int m = z; m < arrCodigo.Length; m++)
+                            {
+                                if (arrCodigo[m].Contains("}"))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    cuerpoSino = cuerpoSino + ConvertirEnsamblador(arrCodigo[m]) + "\n";
+                                    arrCodigo[m] = "";
+                                }
+                            }
+                            arrCodigo[z] = "";
+                            break;
+                        }
+                    }
+                    cuerpoSi = cuerpoSi + "\njmp continuar";
+                    cuerpoSino = cuerpoSino + "\ncontinuar:";
+                    lineaEnsamblador = opRel + InicioCuerpoSi + cuerpoSi + InicioCuerpoElse + cuerpoSino;
+                    Automata.lstEnsamblador.Add(lineaEnsamblador);
+                }
                 else
                 {
                     lineaEnsamblador = ConvertirEnsamblador(arrCodigo[i]);
@@ -1298,7 +1351,7 @@ namespace AnalizadorLexico
                 Identificador iden = Automata.lstIdentificadores.Where(x => x.Nombre == nombreIden).FirstOrDefault();
                 if (iden != null)
                 {
-                    if (iden.TipoDato == "CARACTER")
+                    if (iden.TipoDato == "CARACTER" || iden.TipoDato == "ENTERO")
                     {
                         lineaEnsamblador = "mov ah,1\nint 21h\nmov " + iden.Nombre + ",al";
 
